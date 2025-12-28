@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>Dashboard Quản Lý Máy</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+}
+
+.app {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background: #2c3e50;
+  color: #fff;
+  padding: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  padding: 10px 0;
+}
+
+.main {
+  flex: 1;
+  padding: 20px;
+  overflow: auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: #fff;
+  padding: 15px;
+  border-radius: 6px;
+  flex: 1;
+  border-left: 5px solid #3498db;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 6px;
+  text-align: center;
+}
+
+select, input {
+  padding: 4px;
+  font-size: 13px;
+}
+
+input.location {
+  width: 90px;
+}
+
+input.hour {
+  width: 70px;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <h2>🏭 XƯỞNG</h2>
+    <ul>
+      <li>Dashboard</li>
+      <li>Quản lý máy</li>
+      <li>Đơn hàng</li>
+      <li>Báo cáo</li>
+    </ul>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <header class="header">
+      <h1>Dashboard</h1>
+      <span>Xin chào, Trọng</span>
+    </header>
+
+    <section class="cards">
+      <div class="card">Tổng máy<br><b>100</b></div>
+      <div class="card">Đang chạy<br><b>—</b></div>
+      <div class="card">Dừng máy<br><b>—</b></div>
+    </section>
+
+    <h2>机台管理（Quản lý máy）</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>机号</th>
+          <th>状态</th>
+          <th>原料位置</th>
+          <th>运行小时</th>
+        </tr>
+      </thead>
+      <tbody id="machineBody"></tbody>
+    </table>
+
+  </main>
+</div>
+
+<script>
+/* ===== DATA: mỗi L có vị trí khác nhau ===== */
+const locationMap = {
+  L1: ["A-56", "A-57", "A-58"],
+  L2: ["B-10", "B-11", "B-12"],
+  L3: ["C-01", "C-02"],
+  L4: ["D-05", "D-06"],
+  L5: ["E-01"],
+  L6: ["F-03", "F-04"],
+  L7: ["G-02"],
+  L8: ["H-01", "H-02"]
+};
+
+/* ===== TẠO MÁY 1101 → 1200 ===== */
+const tbody = document.getElementById("machineBody");
+
+for (let machine = 1101; machine <= 1200; machine++) {
+  const tr = document.createElement("tr");
+
+  tr.innerHTML = `
+    <td>${machine}</td>
+
+    <td>
+      <select class="status">
+        <option value="run">运行中</option>
+        <option value="stop">停止</option>
+        <option value="material">缺料</option>
+      </select>
+    </td>
+
+    <td>
+      <select class="line">
+        <option value="">L?</option>
+        <option value="L1">L1</option>
+        <option value="L2">L2</option>
+        <option value="L3">L3</option>
+        <option value="L4">L4</option>
+        <option value="L5">L5</option>
+        <option value="L6">L6</option>
+        <option value="L7">L7</option>
+        <option value="L8">L8</option>
+      </select>
+
+      <input type="text"
+             class="location"
+             placeholder="例如：A-56">
+    </td>
+
+    <td>
+      <input type="number" class="hour" value="0"> h
+    </td>
+  `;
+
+  tbody.appendChild(tr);
+}
+
+/* ===== KIỂM TRA VỊ TRÍ ===== */
+function checkLocation(input) {
+  const row = input.closest("tr");
+  const line = row.querySelector(".line").value;
+  const value = input.value.trim();
+
+  if (!line || !value) return;
+
+  const allowList = locationMap[line];
+  if (!allowList) return;
+
+  if (!allowList.includes(value)) {
+    alert(`❌ Vị trí sai!\n${line} chỉ dùng:\n${allowList.join(", ")}`);
+    input.value = "";
+    input.focus();
+    input.style.border = "2px solid red";
+  } else {
+    input.style.border = "1px solid #ccc";
+  }
+}
+
+/* ===== LƯU DỮ LIỆU ===== */
+function saveRow(row) {
+  const machine = row.children[0].innerText;
+
+  const data = {
+    status: row.querySelector(".status").value,
+    line: row.querySelector(".line").value,
+    location: row.querySelector(".location").value,
+    hour: row.querySelector(".hour").value
+  };
+
+  localStorage.setItem("machine_" + machine, JSON.stringify(data));
+}
+
+/* ===== LOAD DỮ LIỆU ===== */
+function loadRow(row) {
+  const machine = row.children[0].innerText;
+  const saved = localStorage.getItem("machine_" + machine);
+  if (!saved) return;
+
+  const data = JSON.parse(saved);
+  row.querySelector(".status").value = data.status;
+  row.querySelector(".line").value = data.line;
+  row.querySelector(".location").value = data.location;
+  row.querySelector(".hour").value = data.hour;
+}
+
+/* ===== GẮN SỰ KIỆN ===== */
+document.querySelectorAll("#machineBody tr").forEach(row => {
+  loadRow(row);
+
+  row.querySelector(".status").addEventListener("change", () => saveRow(row));
+  row.querySelector(".line").addEventListener("change", () => saveRow(row));
+
+  const loc = row.querySelector(".location");
+  loc.addEventListener("blur", () => {
+    checkLocation(loc);
+    saveRow(row);
+  });
+
+  row.querySelector(".hour").addEventListener("change", () => saveRow(row));
+});
+</script>
+
+</body>
+</html>

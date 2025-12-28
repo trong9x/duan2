@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sincetech.com</title>
+<style>
+
+    .menu {
+    display: flex;
+    gap: 12px;
+    padding: 12px 20px;
+}
+
+/* Ô label */
+.menu a {
+    display: inline-block;
+    padding: 6px 14px;
+    border: 1px solid #999999;
+    border-radius: 4px;
+    font-size: 14px;
+    color: #000000;
+    text-decoration: none;
+    background: #f5f5f5;
+}
+
+/* Hover */
+.menu a:hover {
+    background: #ff0048;
+    color: #000;
+    border-color: #0008ff;
+}
+
+/* Trang đang đứng */
+.menu a.active {
+    background: #ff002b;
+    color: #000;
+    border-color: #1e00ff;
+}
+</style>
+
+
+</head>
+
+<body>
+
+    <!-- Thêm các link điều hướng -->
+     <nav class="menu">
+        <a href="index.html" class="active">Trang chủ</a>      <!-- 1. Điều hướng về trang chủ -->
+        <a href="./more-info/contact.html">Tra con suốt</a>     <!-- 2. Điều hướng đến contact.html -->
+        <a href=".//more-info/my-skill.html">Dự kiến thời gian</a>      
+        <a href="./more-info/brave.html">Mô tả ngành dệt</a>        <!-- 3. Điều hướng đến my-skill.html -->      <!-- 3. Điều hướng đến my-skill.html -->
+   
+     </nav>
+     
+  
+    <h1>新科科技（越南）有限公司</h1>
+    <hr>
+    <h2>SINCETECH (VIET NAM) TECHNOLOGY CO.,LTD</h2>
+    <p>新科科技（越南）有限公司，交易名称为 SINCETECH TECH VINA CO., LTD，英文名称 Sincetech (Viet Nam) Technology Co., Ltd，已在 西宁省计划与投资厅 注册。
+主要经营范围：纺织品、机织布及其他未分类纺织品的生产。
+注册资本：5,000,000,000 越南盾。
+法定代表人：吴旭（Ngô Xuất），职务：董事。
+注册地址：越南西宁省西宁市协盛坊（Hiệp Ninh），4C 路 B2.2 号。
+办公地址：越南西宁省西宁市协盛坊，4C 路 B2.2 号。
+成立日期：2018 年 4 月 6 日。
+税号：3901261468。</p>
+    <hr>
+    
+    <h2>机台管理（Quản lý máy）</h2>
+
+<table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse;">
+  <thead>
+    <tr>
+      <th>机号</th>
+      <th>状态</th>
+      <th>运行小时</th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td>1101</td>
+      <td>
+        <select class="status" onchange="changeStatus(this)">
+          <option value="run">运行中</option>
+          <option value="stop">停止</option>
+        </select>
+      </td>
+      <td>
+        <input type="number" class="hour" value="1200" onchange="updateHour(this)"> h
+      </td>
+    </tr>
+
+    <tr>
+      <td>1102</td>
+      <td>
+        <select class="status" onchange="changeStatus(this)">
+          <option value="run">运行中</option>
+          <option value="stop" selected>停止</option>
+        </select>
+      </td>
+      <td>
+        <input type="number" class="hour" value="980" onchange="updateHour(this)"> h
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+    <!-- Thêm hình ảnh tuhoc.cc.jpg và khi click chuột sẽ điều hướng đến contact.html  -->
+        <img src="./assets/images/548307907_122116228592978641_4451617460419230906_n.jpg" width=1200 height=500 alt="自己学习">
+
+        </a>
+
+    <h2>经营行业</h2>
+    <p>机织布、牛仔布及其他纺织品的生产</p>
+    <p>机织布生产</p>
+    <p>纺织品后整理加工</p>
+    <p>鞋类生产</p>
+    <hr>
+
+
+</body>
+
+</html>
