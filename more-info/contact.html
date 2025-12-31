@@ -3,128 +3,163 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Quản lý máy dệt</title>
 
 <style>
 body{
-  font-family:Arial,sans-serif;
-  background:#f5f5f5;
-  margin:0;
-  padding:10px;
+ font-family:Arial,sans-serif;
+ background:#f5f5f5;
+ margin:0;
+ padding:10px;
 }
 body.dark{background:#1e1e1e;color:#eee}
 
 .top-bar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:6px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:6px;
 }
 
 .actions .btn{
-  cursor:pointer;
-  padding:6px 10px;
-  background:#ddd;
-  border-radius:6px;
+ cursor:pointer;
+ padding:6px 10px;
+ background:#ddd;
+ border-radius:6px;
 }
 body.dark .btn{background:#333}
 
+#dashboard{
+ display:grid;
+ grid-template-columns:repeat(2,1fr);
+ gap:8px;
+ margin:10px 0;
+}
+@media(min-width:768px){
+ #dashboard{grid-template-columns:repeat(4,1fr)}
+}
+
+.dash-card{
+ border-radius:10px;
+ padding:12px;
+ color:#fff;
+ text-align:center;
+ cursor:pointer;
+}
+.dash-card .num{font-size:22px;font-weight:bold}
+.dash-card .label{font-size:13px}
+
+.red{background:#e74c3c}
+.green{background:#2ecc71}
+.gray{background:#7f8c8d}
+.blue{background:#3498db}
+
 #search{
-  width:100%;
-  padding:8px;
-  margin:8px 0;
-  font-size:16px;
+ width:100%;
+ padding:8px;
+ margin:8px 0;
+ font-size:16px;
 }
 
 #tip{font-size:13px;color:#c0392b}
 
 .machine-card{
-  border:1px solid #ccc;
-  border-radius:8px;
-  margin-bottom:10px;
-  background:#fff;
+ border:1px solid #ccc;
+ border-radius:8px;
+ margin-bottom:10px;
+ background:#fff;
 }
 body.dark .machine-card{
-  background:#2b2b2b;
-  border-color:#444;
+ background:#2b2b2b;
+ border-color:#444;
 }
 
 .machine-header{
-  background:#eee;
-  padding:8px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:6px;
+ background:#eee;
+ padding:8px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:6px;
 }
 body.dark .machine-header{background:#3a3a3a}
 
-.machine-title{
-  font-weight:bold;
-  cursor:pointer;
-}
+.machine-title{font-weight:bold;cursor:pointer}
 
 .machine-body{padding:10px}
 .collapsed .machine-body{display:none}
 
 .axle-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
-  gap:8px;
+ display:grid;
+ grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+ gap:8px;
+}
+@media(max-width:768px){
+ .axle-grid{grid-template-columns:1fr}
 }
 
 .axle{
-  border:1px solid #ccc;
-  padding:8px;
-  border-radius:6px;
-  background:#fafafa;
+ border:1px solid #ccc;
+ padding:8px;
+ border-radius:6px;
+ background:#fafafa;
 }
 body.dark .axle{background:#1f1f1f;border-color:#444}
 
 .axle.warning{
-  border-color:#e74c3c;
-  background:#fdecea;
+ border-color:#e74c3c;
+ background:#fdecea;
 }
 .axle.done{
-  border-color:#2ecc71;
-  background:#eafaf1;
+ border-color:#2ecc71;
+ background:#eafaf1;
 }
 body.dark .axle.done{background:#1e3b2c}
 
 .axle input{
-  width:100%;
-  padding:8px;
-  margin-bottom:6px;
-  font-size:16px;
-  box-sizing:border-box;
+ width:100%;
+ padding:8px;
+ margin-bottom:6px;
+ font-size:16px;
+ box-sizing:border-box;
 }
 
 .note{font-size:12px}
-
-/* ===== MOBILE ===== */
-@media(max-width:768px){
-  body{padding:6px;font-size:15px}
-  .top-bar{flex-direction:column;align-items:stretch}
-  .actions{display:flex;gap:6px;flex-wrap:wrap}
-  .actions .btn{flex:1;padding:10px;font-size:14px}
-  .machine-header{flex-direction:column;align-items:stretch}
-  .axle-grid{grid-template-columns:1fr}
-}
 </style>
 </head>
 
 <body>
 
 <div class="top-bar">
-  <h3 id="title"></h3>
-  <div class="actions">
-    <span class="btn" id="expandAll"></span>
-    <span class="btn" id="collapseAll"></span>
-    <span class="btn" id="toggleTheme"></span>
-    <span class="btn" id="toggleLang"></span>
-  </div>
+ <h3 id="title"></h3>
+ <div class="actions">
+  <span class="btn" id="expandAll"></span>
+  <span class="btn" id="collapseAll"></span>
+  <span class="btn" id="toggleTheme"></span>
+  <span class="btn" id="toggleLang"></span>
+ </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+ <div class="dash-card red" data-filter="warning">
+  <div class="num" id="dashWarning">0</div>
+  <div class="label">Trục < 72H</div>
+ </div>
+ <div class="dash-card green" data-filter="done">
+  <div class="num" id="dashDone">0</div>
+  <div class="label">Trục ≥ 72H</div>
+ </div>
+ <div class="dash-card gray" data-filter="empty">
+  <div class="num" id="dashEmpty">0</div>
+  <div class="label">Chưa nhập</div>
+ </div>
+ <div class="dash-card blue" data-filter="all">
+  <div class="num" id="dashTotal">0</div>
+  <div class="label">Tổng trục</div>
+ </div>
 </div>
 
 <input id="search" placeholder="🔍 Tìm máy / đơn hàng">
@@ -137,46 +172,46 @@ body.dark .axle.done{background:#1e3b2c}
 
 <script>
 firebase.initializeApp({
-  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-  authDomain:"quan-ly-may-det.firebaseapp.com",
-  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId:"quan-ly-may-det"
+ apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+ authDomain:"quan-ly-may-det.firebaseapp.com",
+ databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
+ projectId:"quan-ly-may-det"
 });
 const db=firebase.database();
 </script>
 
 <script>
 const TEXT={
-vi:{
- title:"📊 QUẢN LÝ MÁY DỆT – 8 TRỤC",
- expandAll:"🔼 Mở tất cả",
- collapseAll:"🔽 Thu gọn",
- dark:"🌙 Dark",
- light:"☀ Light",
- tip:"🔔 Trục dưới 72H bắt buộc ghi vị trí",
- machine:"Máy",
- order:"Đơn hàng",
- axle:"Trục",
- material:"Nguyên liệu",
- hour:"Giờ chạy",
- location:"Vị trí",
- warn:"⚠ Chưa đủ 72H"
-},
-zh:{
- title:"📊 织机管理 – 8轴",
- expandAll:"🔼 全部展开",
- collapseAll:"🔽 全部收起",
- dark:"🌙 夜间",
- light:"☀ 日间",
- tip:"🔔 少于72小时必须填写位置",
- machine:"机器",
- order:"订单",
- axle:"轴",
- material:"原料",
- hour:"运行小时",
- location:"位置",
- warn:"⚠ 未满72小时"
-}
+ vi:{
+  title:"📊 QUẢN LÝ MÁY DỆT – 8 TRỤC",
+  expandAll:"🔼 Mở tất cả",
+  collapseAll:"🔽 Thu gọn",
+  dark:"🌙 Dark",
+  light:"☀ Light",
+  tip:"🔔 Trục dưới 72H bắt buộc ghi vị trí",
+  machine:"Máy",
+  order:"Đơn hàng",
+  axle:"Trục",
+  material:"Nguyên liệu",
+  hour:"Giờ chạy",
+  location:"Vị trí",
+  warn:"⚠ Chưa đủ 72H"
+ },
+ zh:{
+  title:"📊 织机管理 – 8轴",
+  expandAll:"🔼 全部展开",
+  collapseAll:"🔽 全部收起",
+  dark:"🌙 夜间",
+  light:"☀ 日间",
+  tip:"🔔 少于72小时必须填写位置",
+  machine:"机器",
+  order:"订单",
+  axle:"轴",
+  material:"原料",
+  hour:"运行小时",
+  location:"位置",
+  warn:"⚠ 未满72小时"
+ }
 };
 
 let lang=localStorage.getItem("lang")||"vi";
@@ -212,16 +247,26 @@ for(let i=1101;i<=1160;i++)MACHINES.push(i);
 const AXLES=8;
 const container=document.getElementById("machineContainer");
 
+let DASH={warning:0,done:0,empty:0,total:0};
+function resetDash(){
+ DASH={warning:0,done:0,empty:0,total:0};
+}
+function updateDash(){
+ dashWarning.textContent=DASH.warning;
+ dashDone.textContent=DASH.done;
+ dashEmpty.textContent=DASH.empty;
+ dashTotal.textContent=DASH.total;
+}
+
 function render(){
  container.innerHTML="";
+ resetDash();
  applyLang();
  const t=TEXT[lang];
 
  MACHINES.forEach(machine=>{
   const card=document.createElement("div");
   card.className="machine-card";
-  if(localStorage.getItem("collapse-"+machine)==="1")
-    card.classList.add("collapsed");
   if(window.innerWidth<768)
     card.classList.add("collapsed");
 
@@ -242,8 +287,6 @@ function render(){
   card.querySelector(".machine-title")
    .addEventListener("pointerdown",()=>{
     card.classList.toggle("collapsed");
-    localStorage.setItem("collapse-"+machine,
-     card.classList.contains("collapsed")?"1":"0");
    });
 
   const grid=card.querySelector(".axle-grid");
@@ -264,21 +307,30 @@ function render(){
 
    db.ref(`machines/${machine}/axles/${a}`)
     .on("value",s=>{
-     if(!s.exists())return;
+     DASH.total++;
+     if(!s.exists()){
+      DASH.empty++; updateDash(); return;
+     }
      const d=s.val();
      mat.value=d.material||"";
      hr.value=d.hour||"";
      loc.value=d.location||"";
+
      axle.classList.remove("warning","done");
-     if(d.hour&&d.hour<72){
-       axle.classList.add("warning");
-       note.textContent=t.warn;
-       mat.disabled=false;loc.disabled=false;
-     }else if(d.hour>=72){
-       axle.classList.add("done");
-       note.textContent="✅ OK";
-       mat.disabled=true;loc.disabled=true;
-     }else note.textContent="";
+     if(!d.hour){
+      DASH.empty++;
+     }else if(d.hour<72){
+      axle.classList.add("warning");
+      note.textContent=t.warn;
+      DASH.warning++;
+     }else{
+      axle.classList.add("done");
+      note.textContent="✅ OK";
+      DASH.done++;
+      mat.disabled=true;
+      loc.disabled=true;
+     }
+     updateDash();
     });
 
    axle.oninput=()=>{
@@ -312,12 +364,20 @@ search.oninput=()=>{
  });
 };
 
-document.addEventListener("focusin",e=>{
- if(e.target.tagName==="INPUT"){
-  setTimeout(()=>e.target.scrollIntoView({
-   behavior:"smooth",block:"center"
-  }),300);
- }
+document.querySelectorAll(".dash-card").forEach(card=>{
+ card.onclick=()=>{
+  const type=card.dataset.filter;
+  document.querySelectorAll(".axle").forEach(axle=>{
+   axle.style.display="";
+   if(type==="warning"&&!axle.classList.contains("warning"))
+    axle.style.display="none";
+   if(type==="done"&&!axle.classList.contains("done"))
+    axle.style.display="none";
+   if(type==="empty"&&
+     axle.querySelector('input[type="number"]').value)
+    axle.style.display="none";
+  });
+ };
 });
 
 render();
@@ -325,6 +385,7 @@ render();
 
 </body>
 </html>
+
 
 
 
