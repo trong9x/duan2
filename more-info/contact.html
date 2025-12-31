@@ -130,6 +130,8 @@
 <!-- ================= FIREBASE ================= -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
 
 <script>
   const firebaseConfig = {
@@ -140,7 +142,7 @@
     storageBucket: "quan-ly-may-det.firebasestorage.app",
     messagingSenderId: "661540513500",
     appId: "1:661540513500:web:181366e3e91dbb4a81f619"
-  };
+};
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
@@ -246,8 +248,7 @@ function render() {
       </div>
       <div class="machine-body"><div class="axle-grid"></div></div>
     `;
-
-    const orderInput = card.querySelector(".order-input");
+const orderInput = card.querySelector(".order-input");
     listenOrder(machine, v => orderInput.value = v);
     orderInput.oninput = () => saveOrder(machine, orderInput.value);
 
@@ -313,4 +314,5 @@ render();
 
 </body>
 </html>
+
 
