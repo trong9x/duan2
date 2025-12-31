@@ -1,115 +1,118 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <title>Quản lý máy dệt</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 10px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-    body.dark {
-      background: #1e1e1e;
-      color: #eee;
-    }
+<title>Quản lý máy dệt</title>
 
-    .top-bar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
-    }
+<style>
+body{
+  font-family:Arial,sans-serif;
+  background:#f5f5f5;
+  margin:0;
+  padding:10px;
+}
+body.dark{background:#1e1e1e;color:#eee}
 
-    .actions .btn {
-      cursor: pointer;
-      padding: 6px 10px;
-      background: #ddd;
-      border-radius: 6px;
-      display: inline-block;
-    }
+.top-bar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
 
-    body.dark .btn {
-      background: #333;
-    }
+.actions .btn{
+  cursor:pointer;
+  padding:6px 10px;
+  background:#ddd;
+  border-radius:6px;
+}
+body.dark .btn{background:#333}
 
-    #tip {
-      margin: 8px 0;
-      font-size: 13px;
-      color: #c0392b;
-    }
+#search{
+  width:100%;
+  padding:8px;
+  margin:8px 0;
+  font-size:16px;
+}
 
-    .machine-card {
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      background: #fff;
-      overflow: hidden;
-    }
+#tip{font-size:13px;color:#c0392b}
 
-    body.dark .machine-card {
-      background: #2b2b2b;
-      border-color: #444;
-    }
+.machine-card{
+  border:1px solid #ccc;
+  border-radius:8px;
+  margin-bottom:10px;
+  background:#fff;
+}
+body.dark .machine-card{
+  background:#2b2b2b;
+  border-color:#444;
+}
 
-    .machine-header {
-      background: #eee;
-      padding: 8px;
-      display: flex;
-      justify-content: space-between;
-      cursor: pointer;
-      align-items: center;
-    }
+.machine-header{
+  background:#eee;
+  padding:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:6px;
+}
+body.dark .machine-header{background:#3a3a3a}
 
-    body.dark .machine-header {
-      background: #3a3a3a;
-    }
+.machine-title{
+  font-weight:bold;
+  cursor:pointer;
+}
 
-    .machine-body {
-      padding: 10px;
-    }
+.machine-body{padding:10px}
+.collapsed .machine-body{display:none}
 
-    .collapsed .machine-body {
-      display: none;
-    }
+.axle-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+  gap:8px;
+}
 
-    .axle-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 8px;
-    }
+.axle{
+  border:1px solid #ccc;
+  padding:8px;
+  border-radius:6px;
+  background:#fafafa;
+}
+body.dark .axle{background:#1f1f1f;border-color:#444}
 
-    .axle {
-      border: 1px solid #ccc;
-      padding: 6px;
-      border-radius: 6px;
-      background: #fafafa;
-    }
+.axle.warning{
+  border-color:#e74c3c;
+  background:#fdecea;
+}
+.axle.done{
+  border-color:#2ecc71;
+  background:#eafaf1;
+}
+body.dark .axle.done{background:#1e3b2c}
 
-    body.dark .axle {
-      background: #1f1f1f;
-      border-color: #444;
-    }
+.axle input{
+  width:100%;
+  padding:8px;
+  margin-bottom:6px;
+  font-size:16px;
+  box-sizing:border-box;
+}
 
-    .axle.warning {
-      border-color: #e74c3c;
-      background: #fdecea;
-    }
+.note{font-size:12px}
 
-    .axle input {
-      width: 100%;
-      margin-bottom: 4px;
-      padding: 4px;
-      box-sizing: border-box;
-    }
-
-    .note {
-      font-size: 12px;
-      color: #e74c3c;
-    }
-  </style>
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+  body{padding:6px;font-size:15px}
+  .top-bar{flex-direction:column;align-items:stretch}
+  .actions{display:flex;gap:6px;flex-wrap:wrap}
+  .actions .btn{flex:1;padding:10px;font-size:14px}
+  .machine-header{flex-direction:column;align-items:stretch}
+  .axle-grid{grid-template-columns:1fr}
+}
+</style>
 </head>
 
 <body>
@@ -124,195 +127,204 @@
   </div>
 </div>
 
+<input id="search" placeholder="🔍 Tìm máy / đơn hàng">
 <p id="tip"></p>
 <div id="machineContainer"></div>
 
-<!-- ================= FIREBASE ================= -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-
 
 <script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-    authDomain: "quan-ly-may-det.firebaseapp.com",
-    databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "quan-ly-may-det",
-    storageBucket: "quan-ly-may-det.firebasestorage.app",
-    messagingSenderId: "661540513500",
-    appId: "1:661540513500:web:181366e3e91dbb4a81f619"
-};
-
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  authDomain:"quan-ly-may-det.firebaseapp.com",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:"quan-ly-may-det"
+});
+const db=firebase.database();
 </script>
-<!-- =============== /FIREBASE ================= -->
 
 <script>
-/* ===== NGÔN NGỮ ===== */
-const TEXT = {
-  vi: {
-    title: "📊 QUẢN LÝ MÁY DỆT – 8 TRỤC",
-    expandAll: "🔼 Mở tất cả",
-    collapseAll: "🔽 Thu gọn tất cả",
-    dark: "🌙 Dark",
-    light: "☀ Light",
-    tip: "🔔 Trục dưới 72H bắt buộc ghi vị trí con suốt",
-    machine: "Máy",
-    order: "Đơn hàng",
-    axle: "Trục",
-    material: "Nguyên liệu",
-    hour: "Giờ chạy",
-    location: "Vị trí",
-    warn: "⚠ Chưa đủ 72H"
-  },
-  zh: {
-    title: "📊 织机管理 – 8轴",
-    expandAll: "🔼 全部展开",
-    collapseAll: "🔽 全部收起",
-    dark: "🌙 夜间",
-    light: "☀ 日间",
-    tip: "🔔 运行时间少于72小时必须填写位置",
-    machine: "机器",
-    order: "订单",
-    axle: "轴",
-    material: "原料",
-    hour: "运行小时",
-    location: "位置",
-    warn: "⚠ 未满72小时"
+const TEXT={
+vi:{
+ title:"📊 QUẢN LÝ MÁY DỆT – 8 TRỤC",
+ expandAll:"🔼 Mở tất cả",
+ collapseAll:"🔽 Thu gọn",
+ dark:"🌙 Dark",
+ light:"☀ Light",
+ tip:"🔔 Trục dưới 72H bắt buộc ghi vị trí",
+ machine:"Máy",
+ order:"Đơn hàng",
+ axle:"Trục",
+ material:"Nguyên liệu",
+ hour:"Giờ chạy",
+ location:"Vị trí",
+ warn:"⚠ Chưa đủ 72H"
+},
+zh:{
+ title:"📊 织机管理 – 8轴",
+ expandAll:"🔼 全部展开",
+ collapseAll:"🔽 全部收起",
+ dark:"🌙 夜间",
+ light:"☀ 日间",
+ tip:"🔔 少于72小时必须填写位置",
+ machine:"机器",
+ order:"订单",
+ axle:"轴",
+ material:"原料",
+ hour:"运行小时",
+ location:"位置",
+ warn:"⚠ 未满72小时"
+}
+};
+
+let lang=localStorage.getItem("lang")||"vi";
+if(localStorage.getItem("theme")==="dark")
+ document.body.classList.add("dark");
+
+toggleTheme.onclick=()=>{
+ document.body.classList.toggle("dark");
+ localStorage.setItem("theme",
+  document.body.classList.contains("dark")?"dark":"light");
+ applyLang();
+};
+
+toggleLang.onclick=()=>{
+ lang=lang==="vi"?"zh":"vi";
+ localStorage.setItem("lang",lang);
+ render();
+};
+
+function applyLang(){
+ const t=TEXT[lang];
+ title.textContent=t.title;
+ expandAll.textContent=t.expandAll;
+ collapseAll.textContent=t.collapseAll;
+ tip.textContent=t.tip;
+ toggleTheme.textContent=
+  document.body.classList.contains("dark")?t.light:t.dark;
+ toggleLang.textContent=lang==="vi"?"中文":"VI";
+}
+
+const MACHINES=[];
+for(let i=1101;i<=1160;i++)MACHINES.push(i);
+const AXLES=8;
+const container=document.getElementById("machineContainer");
+
+function render(){
+ container.innerHTML="";
+ applyLang();
+ const t=TEXT[lang];
+
+ MACHINES.forEach(machine=>{
+  const card=document.createElement("div");
+  card.className="machine-card";
+  if(localStorage.getItem("collapse-"+machine)==="1")
+    card.classList.add("collapsed");
+  if(window.innerWidth<768)
+    card.classList.add("collapsed");
+
+  card.innerHTML=`
+   <div class="machine-header">
+    <span class="machine-title">${t.machine} ${machine}</span>
+    <input class="order-input" placeholder="${t.order}">
+   </div>
+   <div class="machine-body"><div class="axle-grid"></div></div>
+  `;
+
+  const orderInput=card.querySelector(".order-input");
+  db.ref("machines/"+machine+"/order")
+    .on("value",s=>orderInput.value=s.val()||"");
+  orderInput.oninput=()=>db.ref("machines/"+machine+"/order")
+    .set(orderInput.value);
+
+  card.querySelector(".machine-title")
+   .addEventListener("pointerdown",()=>{
+    card.classList.toggle("collapsed");
+    localStorage.setItem("collapse-"+machine,
+     card.classList.contains("collapsed")?"1":"0");
+   });
+
+  const grid=card.querySelector(".axle-grid");
+
+  for(let a=1;a<=AXLES;a++){
+   const axle=document.createElement("div");
+   axle.className="axle";
+   axle.innerHTML=`
+    <b>${t.axle} ${a}</b>
+    <input placeholder="${t.material}">
+    <input type="number" placeholder="${t.hour}">
+    <input placeholder="${t.location}">
+    <div class="note"></div>
+   `;
+
+   const [mat,hr,loc]=axle.querySelectorAll("input");
+   const note=axle.querySelector(".note");
+
+   db.ref(`machines/${machine}/axles/${a}`)
+    .on("value",s=>{
+     if(!s.exists())return;
+     const d=s.val();
+     mat.value=d.material||"";
+     hr.value=d.hour||"";
+     loc.value=d.location||"";
+     axle.classList.remove("warning","done");
+     if(d.hour&&d.hour<72){
+       axle.classList.add("warning");
+       note.textContent=t.warn;
+       mat.disabled=false;loc.disabled=false;
+     }else if(d.hour>=72){
+       axle.classList.add("done");
+       note.textContent="✅ OK";
+       mat.disabled=true;loc.disabled=true;
+     }else note.textContent="";
+    });
+
+   axle.oninput=()=>{
+    db.ref(`machines/${machine}/axles/${a}`).set({
+     material:mat.value,
+     hour:hr.value,
+     location:loc.value,
+     updatedAt:Date.now()
+    });
+   };
+
+   grid.appendChild(axle);
   }
-};
 
-let lang = localStorage.getItem("lang") || "vi";
-
-/* ===== FIREBASE HELPERS ===== */
-const saveAxle = (m, a, d) =>
-  db.ref(`machines/${m}/axles/${a}`).set(d);
-
-const listenAxle = (m, a, cb) =>
-  db.ref(`machines/${m}/axles/${a}`).on("value", s => s.exists() && cb(s.val()));
-
-const saveOrder = (m, v) =>
-  db.ref(`machines/${m}/order`).set(v);
-
-const listenOrder = (m, cb) =>
-  db.ref(`machines/${m}/order`).on("value", s => s.exists() && cb(s.val()));
-
-/* ===== THEME ===== */
-if (localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
-toggleTheme.onclick = () => {
-  document.body.classList.toggle("dark");
-  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
-  applyLang();
-};
-
-/* ===== APPLY LANG ===== */
-function applyLang() {
-  const t = TEXT[lang];
-  title.textContent = t.title;
-  expandAll.textContent = t.expandAll;
-  collapseAll.textContent = t.collapseAll;
-  tip.textContent = t.tip;
-  toggleTheme.textContent = document.body.classList.contains("dark") ? t.light : t.dark;
-  toggleLang.textContent = lang === "vi" ? "中文" : "VI";
+  container.appendChild(card);
+ });
 }
 
-toggleLang.onclick = () => {
-  lang = lang === "vi" ? "zh" : "vi";
-  localStorage.setItem("lang", lang);
-  render();
+expandAll.onclick=()=>document
+ .querySelectorAll(".machine-card")
+ .forEach(c=>c.classList.remove("collapsed"));
+
+collapseAll.onclick=()=>document
+ .querySelectorAll(".machine-card")
+ .forEach(c=>c.classList.add("collapsed"));
+
+search.oninput=()=>{
+ const q=search.value.toLowerCase();
+ document.querySelectorAll(".machine-card").forEach(c=>{
+  c.style.display=c.innerText.toLowerCase().includes(q)?"":"none";
+ });
 };
 
-/* ===== DATA ===== */
-const MACHINES = [];
-for (let m = 1101; m <= 1160; m++) MACHINES.push(m);
-const AXLES = 8;
-const container = document.getElementById("machineContainer");
-
-/* ===== RENDER ===== */
-function render() {
-  container.innerHTML = "";
-  applyLang();
-  const t = TEXT[lang];
-
-  MACHINES.forEach(machine => {
-    const card = document.createElement("div");
-    card.className = "machine-card";
-    if (localStorage.getItem("collapse-" + machine) === "1") card.classList.add("collapsed");
-
-    card.innerHTML = `
-      <div class="machine-header">
-        <strong>${t.machine} ${machine}</strong>
-        <input class="order-input" placeholder="${t.order}">
-      </div>
-      <div class="machine-body"><div class="axle-grid"></div></div>
-    `;
-const orderInput = card.querySelector(".order-input");
-    listenOrder(machine, v => orderInput.value = v);
-    orderInput.oninput = () => saveOrder(machine, orderInput.value);
-
-    const grid = card.querySelector(".axle-grid");
-
-    for (let i = 1; i <= AXLES; i++) {
-      const axle = document.createElement("div");
-      axle.className = "axle";
-      axle.innerHTML = `
-        <b>${t.axle} ${i}</b>
-        <input placeholder="${t.material}">
-        <input type="number" placeholder="${t.hour}">
-        <input placeholder="${t.location}">
-        <div class="note"></div>
-      `;
-      const [mat, hr, loc] = axle.querySelectorAll("input");
-      const note = axle.querySelector(".note");
-
-      listenAxle(machine, i, d => {
-        mat.value = d.material || "";
-        hr.value = d.hour || "";
-        loc.value = d.location || "";
-      });
-
-      axle.oninput = () => {
-        const h = Number(hr.value);
-        if (h && h < 72) {
-          axle.classList.add("warning");
-          note.textContent = t.warn;
-        } else {
-          axle.classList.remove("warning");
-          note.textContent = "";
-        }
-        saveAxle(machine, i, {
-          material: mat.value,
-          hour: hr.value,
-          location: loc.value
-        });
-      };
-
-      grid.appendChild(axle);
-    }
-
-    card.querySelector(".machine-header").onclick = () => {
-      card.classList.toggle("collapsed");
-      localStorage.setItem("collapse-" + machine, card.classList.contains("collapsed") ? "1" : "0");
-    };
-
-    container.appendChild(card);
-  });
-}
-
-expandAll.onclick = () => {
-  document.querySelectorAll(".machine-card").forEach(c => c.classList.remove("collapsed"));
-};
-
-collapseAll.onclick = () => {
-  document.querySelectorAll(".machine-card").forEach(c => c.classList.add("collapsed"));
-};
+document.addEventListener("focusin",e=>{
+ if(e.target.tagName==="INPUT"){
+  setTimeout(()=>e.target.scrollIntoView({
+   behavior:"smooth",block:"center"
+  }),300);
+ }
+});
 
 render();
 </script>
 
 </body>
 </html>
+
 
 
