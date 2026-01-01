@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sản lượng</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f2f2f2}
+
+/* HEADER */
+.header{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  background:#2980b9;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:bold;z-index:10;
+}
+
+/* CONTENT */
+.content{padding:70px 10px}
+.card{
+  background:#fff;border-radius:16px;
+  margin-bottom:12px;padding:12px;
+  box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+.row{font-size:14px;margin:4px 0}
+.row b{color:#555}
+.del{
+  margin-top:8px;background:#e74c3c;color:#fff;
+  border:none;border-radius:10px;padding:8px 12px
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">📊 Sản lượng</div>
+<div class="content" id="list"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db=firebase.database();
+const list=document.getElementById("list");
+
+db.ref("production").on("value",snap=>{
+  list.innerHTML="";
+  const data=snap.val()||{};
+  Object.keys(data).forEach(m=>{
+    Object.keys(data[m]).forEach(a=>{
+      Object.keys(data[m][a]).forEach(id=>{
+        const d=data[m][a][id];
+        if(!d||!d.material) return;
+
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML=`
+          <div class="row"><b>Ngày:</b> ${d.date||""}</div>
+          <div class="row"><b>Máy:</b> ${m} | <b>Trục:</b> ${a.replace("axle_","")}</div>
+          <div class="row"><b>Nguyên liệu:</b> ${d.material}</div>
+          <div class="row"><b>Vị trí:</b> ${d.position||""}</div>
+          <div class="row"><b>SL:</b> ${d.quantity} | <b>Ca:</b> ${d.shift}</div>
+          <div class="row"><b>Người:</b> ${d.person}</div>
+          <button class="del" onclick="del('${m}','${a}','${id}')">❌ Xóa</button>
+        `;
+        list.appendChild(card);
+      });
+    });
+  });
+});
+
+function del(m,a,id){
+  if(!confirm("Xóa dòng này?")) return;
+  db.ref(`production/${m}/${a}/${id}`).remove();
+}
+</script>
+
+</body>
+</html>

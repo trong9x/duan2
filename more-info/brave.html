@@ -1,26 +1,152 @@
 <!DOCTYPE html>
-<html lang="zh">
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>barve.me</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nhập sản lượng</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial;background:#f2f2f2}
+
+/* HEADER */
+.header{
+  position:fixed;top:0;left:0;right:0;height:56px;
+  background:#27ae60;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;font-weight:bold;z-index:10;
+}
+
+/* CONTENT */
+.content{padding:70px 12px 90px}
+.card{
+  background:#fff;border-radius:18px;padding:16px;
+  max-width:520px;margin:auto;
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+}
+
+label{font-weight:600;margin-top:12px;display:block;font-size:14px}
+select,input{
+  width:100%;padding:14px;margin-top:6px;
+  border-radius:14px;border:1px solid #ccc;font-size:16px
+}
+
+/* FOOTER */
+.footer{
+  position:fixed;bottom:0;left:0;right:0;
+  background:#fff;padding:10px;
+  box-shadow:0 -4px 12px rgba(0,0,0,.15);
+}
+button{
+  width:100%;padding:16px;font-size:18px;
+  background:#27ae60;color:#fff;border:none;border-radius:18px
+}
+button:active{opacity:.85}
+</style>
 </head>
+
 <body>
-    <nav>
-        <a href="/index.html">Trang chủ</a>
-    </nav>
-    <p>1.胚布漏针</p>
-    <img src="https://xuongmaydosi.com/wp-content/uploads/2025/07/skipped-stitches-1.webp" height="500" width="500" alt="ảnh đẹp">
 
-    <p>2.胚布刮伤</p>
-    <img src="https://suamaykhau.com/uploads/kinh-nghiem/be-mat-vai.jpg" height="500" width="500" alt="ảnh đẹp">
+<div class="header">📱 Nhập sản lượng</div>
 
-    <p>3.针孔</p>
-    <img src="https://m.media-amazon.com/images/I/81FlQTJ1SfL.jpg" height="500" width="500" alt="">
+<div class="content">
+<div class="card">
 
-    <p>3.油污</p>
-    <img src="data:image/jpeg;base64,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" height="500" width="500" alt="">
+<label>Ngày</label>
+<input id="date" type="date">
 
-    
+<label>Máy</label>
+<select id="machine">
+  <option value="">-- chọn máy --</option>
+  <option>1101D</option><option>1102D</option><option>1103F</option>
+  <option>1104F</option><option>1107B</option><option>1108B</option>
+</select>
+
+<label>Trục</label>
+<select id="axle">
+  <option value="">-- chọn trục --</option>
+  <option>L1</option><option>L2</option><option>L3</option>
+</select>
+
+<label>Nguyên liệu</label>
+<input id="material" placeholder="150/96 bghbs">
+
+<label>Số lượng</label>
+<input id="quantity" type="number" inputmode="numeric">
+
+<label>Vị trí</label>
+<input id="position" placeholder="A-25">
+
+<label>Ca</label>
+<select id="shift">
+  <option value="a">Ca A</option>
+  <option value="b">Ca B</option>
+</select>
+
+<label>Người phụ trách</label>
+<input id="person">
+
+</div>
+</div>
+
+<div class="footer">
+  <button onclick="save()">✅ OK</button>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db=firebase.database();
+
+/* ===== set ngày hôm nay ===== */
+date.value=new Date().toISOString().slice(0,10);
+
+/* ===== AUTO FOCUS ===== */
+const order=["date","machine","axle","material","quantity","position","shift","person"];
+order.forEach((id,i)=>{
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.addEventListener("change",()=>focusNext(i));
+  el.addEventListener("keyup",e=>{
+    if(e.key==="Enter") focusNext(i);
+  });
+});
+function focusNext(i){
+  const next=document.getElementById(order[i+1]);
+  if(next) next.focus();
+}
+
+/* ===== SAVE ===== */
+function save(){
+  const data={
+    date:date.value,
+    machine:machine.value,
+    axle:axle.value,
+    material:material.value.trim(),
+    quantity:Number(quantity.value),
+    position:position.value.trim(),
+    shift:shift.value,
+    person:person.value.trim(),
+    createdAt:Date.now()
+  };
+
+  if(!data.date||!data.machine||!data.axle||!data.material||
+     !data.quantity||!data.shift||!data.person){
+    alert("❗ Nhập đủ thông tin");
+    return;
+  }
+
+  db.ref(`production/${data.machine}/axle_${data.axle}`).push(data)
+    .then(()=>location.href="my-skill-mobile.html#sanluong");
+}
+</script>
+
 </body>
 </html>

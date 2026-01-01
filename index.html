@@ -1,87 +1,246 @@
 <!DOCTYPE html>
-<html lang="zh">
-
+<html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sincetech.com</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SINCETECH VIET NAM</title>
+
 <style>
-
-    .menu {
-    display: flex;
-    gap: 12px;
-    padding: 12px 20px;
+/* ===== BRAND COLOR ===== */
+:root{
+  --brand:#0B5ED7;
+  --brand-light:#1E88E5;
+  --bg:#f4f6f8;
 }
 
-/* Ô label */
-.menu a {
-    display: inline-block;
-    padding: 6px 14px;
-    border: 1px solid #999999;
-    border-radius: 4px;
-    font-size: 14px;
-    color: #000000;
-    text-decoration: none;
-    background: #f5f5f5;
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial, Helvetica, sans-serif;
+  background:var(--bg);
+  color:#222;
 }
 
-/* Hover */
-.menu a:hover {
-    background: #ff0048;
-    color: #000;
-    border-color: #0008ff;
+/* ===== HEADER ===== */
+header{
+  background:linear-gradient(135deg,var(--brand),var(--brand-light));
+  color:#fff;
+  padding:20px;
 }
 
-/* Trang đang đứng */
-.menu a.active {
-    background: #ff002b;
-    color: #000;
-    border-color: #1e00ff;
+header h1{margin:0;font-size:24px}
+header h2{margin:6px 0 0;font-size:14px;font-weight:normal;opacity:.9}
+
+/* ===== TOP BAR ===== */
+.topbar{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
+
+/* ===== MENU ===== */
+nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+nav a{
+  padding:8px 16px;
+  border-radius:20px;
+  background:#ffffff22;
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+  border:1px solid #ffffff55;
+}
+
+nav a:hover{
+  background:#fff;
+  color:var(--brand);
+}
+
+nav a.active{
+  background:#fff;
+  color:var(--brand);
+  font-weight:bold;
+}
+
+/* ===== LOGOUT ===== */
+.logout{
+  background:#ff3b3b;
+  color:#fff;
+  border:none;
+  padding:8px 16px;
+  border-radius:20px;
+  cursor:pointer;
+  font-size:14px;
+}
+
+/* ===== LANGUAGE ===== */
+.lang button{
+  border:none;
+  background:#fff;
+  color:var(--brand);
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:13px;
+  cursor:pointer;
+  margin-left:6px;
+}
+
+.lang button.active{
+  background:#ffeb3b;
+}
+
+/* ===== MAIN ===== */
+main{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+/* ===== CARD ===== */
+.card{
+  background:#fff;
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 6px 20px rgba(0,0,0,.08);
+}
+
+.card h3{
+  margin-top:0;
+  color:var(--brand);
+}
+
+/* ===== IMAGE ===== */
+.company-img{
+  width:100%;
+  border-radius:14px;
+  margin-top:12px;
+}
+
+/* ===== LIST ===== */
+.list p{
+  margin:6px 0;
+  padding-left:10px;
+  border-left:4px solid var(--brand);
+}
+
+/* ===== FOOTER ===== */
+footer{
+  background:var(--brand);
+  color:#fff;
+  text-align:center;
+  padding:14px;
+  font-size:13px;
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:600px){
+  header h1{font-size:20px}
 }
 </style>
-
-
 </head>
 
 <body>
 
-    <!-- Thêm các link điều hướng -->
-     <nav class="menu">
-        <a href="index.html" class="active">Trang chủ</a>      <!-- 1. Điều hướng về trang chủ -->
-        <a href="./more-info/contact.html">Tra con suốt</a>     <!-- 2. Điều hướng đến contact.html -->
-        <a href=".//more-info/my-skill.html">Dự kiến thời gian</a>      
-        <a href="./more-info/brave.html">Mô tả ngành dệt</a>        <!-- 3. Điều hướng đến my-skill.html -->      <!-- 3. Điều hướng đến my-skill.html -->
-   
-     </nav>
-     
-  
-    <h1>新科科技（越南）有限公司</h1>
-    <hr>
-    <h2>SINCETECH (VIET NAM) TECHNOLOGY CO.,LTD</h2>
-    <p>新科科技（越南）有限公司，交易名称为 SINCETECH TECH VINA CO., LTD，英文名称 Sincetech (Viet Nam) Technology Co., Ltd，已在 西宁省计划与投资厅 注册。
-主要经营范围：纺织品、机织布及其他未分类纺织品的生产。
-注册资本：5,000,000,000 越南盾。
-法定代表人：吴旭（Ngô Xuất），职务：董事。
-注册地址：越南西宁省西宁市协盛坊（Hiệp Ninh），4C 路 B2.2 号。
-办公地址：越南西宁省西宁市协盛坊，4C 路 B2.2 号。
-成立日期：2018 年 4 月 6 日。
-税号：3901261468。</p>
-    <hr>
+<header>
+  <h1 data-vi="新科科技（越南）有限公司" data-zh="新科科技（越南）有限公司"></h1>
+  <h2 data-vi="SINCETECH (VIET NAM) TECHNOLOGY CO., LTD"
+      data-zh="SINCETECH (VIET NAM) TECHNOLOGY CO., LTD"></h2>
 
-    <!-- Thêm hình ảnh tuhoc.cc.jpg và khi click chuột sẽ điều hướng đến contact.html  -->
-        <img src="./assets/images/548307907_122116228592978641_4451617460419230906_n.jpg" width=1200 height=500 alt="自己学习">
+  <div class="topbar">
+    <nav>
+      <a href="index.html" class="active" data-vi="Trang chủ" data-zh="首页"></a>
+      <a href="./more-info/contact.html" data-vi="Tra con suốt" data-zh="查询盘头"></a>
+      <a href="./more-info/my-skill-mobile.html" data-vi="Xem sản lượng lên trục" data-zh="查看产量上轴"></a>
+      <a href="./more-info/brave.html" data-vi="Nhập sản lượng lên trục" data-zh="录入产量上轴"></a>
+    </nav>
 
-        </a>
+    <div class="lang">
+      <button id="viBtn">🇻🇳 VI</button>
+      <button id="zhBtn">🇨🇳 中文</button>
+      <button class="logout" onclick="logout()">Đăng xuất</button>
+    </div>
+  </div>
+</header>
 
-    <h2>经营行业</h2>
-    <p>机织布、牛仔布及其他纺织品的生产</p>
-    <p>机织布生产</p>
-    <p>纺织品后整理加工</p>
-    <p>鞋类生产</p>
-    <hr>
+<main>
 
+  <div class="card">
+    <h3 data-vi="🏢 Thông tin công ty" data-zh="🏢 公司信息"></h3>
+    <p data-vi="Công ty SINCETECH (Việt Nam) Technology Co., Ltd."
+       data-zh="新科科技（越南）有限公司。"></p>
+    <p data-vi="Vốn điều lệ: 5.000.000.000 VND"
+       data-zh="注册资本：5,000,000,000 越南盾"></p>
+    <p data-vi="Người đại diện: Ngô Xuất"
+       data-zh="法定代表人：吴旭"></p>
+    <p data-vi="Thành lập: 06/04/2018"
+       data-zh="成立日期：2018年4月6日"></p>
+    <p data-vi="Địa chỉ: Hiệp Ninh, Tây Ninh"
+       data-zh="地址：越南西宁省协盛坊"></p>
+  </div>
+
+  <div class="card">
+    <h3 data-vi="📸 Hình ảnh công ty" data-zh="📸 公司图片"></h3>
+    <img src="./assets/images/548307907_122116228592978641_4451617460419230906_n.jpg"
+         class="company-img">
+  </div>
+
+  <div class="card list">
+    <h3 data-vi="🏭 Lĩnh vực hoạt động" data-zh="🏭 经营行业"></h3>
+    <p data-vi="Sản xuất vải dệt thoi" data-zh="机织布生产"></p>
+    <p data-vi="Gia công hoàn thiện dệt" data-zh="纺织品后整理加工"></p>
+    <p data-vi="Sản xuất giày" data-zh="鞋类生产"></p>
+  </div>
+
+</main>
+
+<footer data-vi="© SINCETECH VIET NAM – Hệ thống nội bộ"
+        data-zh="© 新科科技越南 – 内部系统"></footer>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="firebase.js"></script>
+
+<script>
+/* 🔒 BẢO VỆ TRANG */
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    location.replace("login.html");
+  }
+});
+
+/* 🚪 LOGOUT */
+function logout(){
+  auth.signOut().then(()=>{
+    location.replace("login.html");
+  });
+}
+
+/* 🌐 LANGUAGE SWITCH */
+const elements = document.querySelectorAll("[data-vi]");
+const viBtn = document.getElementById("viBtn");
+const zhBtn = document.getElementById("zhBtn");
+
+function setLang(lang){
+  elements.forEach(el=>{
+    el.innerText = el.dataset[lang];
+  });
+  localStorage.setItem("lang",lang);
+  viBtn.classList.toggle("active",lang==="vi");
+  zhBtn.classList.toggle("active",lang==="zh");
+}
+viBtn.onclick=()=>setLang("vi");
+zhBtn.onclick=()=>setLang("zh");
+setLang(localStorage.getItem("lang") || "vi");
+</script>
 
 </body>
-
 </html>
