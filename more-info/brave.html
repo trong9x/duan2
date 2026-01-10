@@ -8,35 +8,53 @@
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial;background:#f2f2f2}
+
+/* HEADER */
 .header{
   position:fixed;top:0;left:0;right:0;height:56px;
   background:#27ae60;color:#fff;
   display:flex;align-items:center;justify-content:center;
   font-size:18px;font-weight:bold;z-index:10
 }
+
+/* CONTENT */
 .content{padding:70px 12px 110px}
 .card{
   background:#fff;border-radius:18px;padding:16px;
   max-width:520px;margin:auto;
   box-shadow:0 6px 18px rgba(0,0,0,.15)
 }
+
 label{font-weight:600;margin-top:12px;display:block;font-size:14px}
 input,select{
   width:100%;padding:14px;margin-top:6px;
   border-radius:14px;border:1px solid #ccc;font-size:16px
 }
+
 button{
   width:100%;padding:16px;font-size:18px;
   border:none;border-radius:18px;color:#fff
 }
 .scan{background:#2980b9;margin-bottom:12px}
 .save{background:#27ae60}
+
+/* QR PREVIEW (BẮT BUỘC CHO IPHONE) */
+#preview{
+  display:none;
+  width:100%;
+  min-height:260px;
+  background:#000;
+  border-radius:14px;
+  overflow:hidden;
+  margin-bottom:12px;
+}
+
+/* FOOTER */
 .footer{
   position:fixed;bottom:0;left:0;right:0;
   background:#fff;padding:10px;
   box-shadow:0 -4px 12px rgba(0,0,0,.15)
 }
-video{width:100%;border-radius:14px;margin-top:10px}
 </style>
 </head>
 
@@ -48,7 +66,9 @@ video{width:100%;border-radius:14px;margin-top:10px}
 <div class="card">
 
 <button class="scan" onclick="startScan()">📷 Quét QR tem</button>
-<video id="preview" style="display:none"></video>
+
+<!-- ⚠️ PHẢI LÀ DIV – KHÔNG DÙNG VIDEO -->
+<div id="preview"></div>
 
 <label>Ngày</label>
 <input id="date" type="date">
@@ -56,13 +76,17 @@ video{width:100%;border-radius:14px;margin-top:10px}
 <label>Máy</label>
 <select id="machine">
   <option value="">-- chọn máy --</option>
-  <option>1101D</option><option>1102D</option><option>1103F</option>
+  <option>1101D</option>
+  <option>1102D</option>
+  <option>1103F</option>
 </select>
 
 <label>Trục</label>
 <select id="axle">
   <option value="">-- chọn trục --</option>
-  <option>L1</option><option>L2</option><option>L3</option>
+  <option>L1</option>
+  <option>L2</option>
+  <option>L3</option>
 </select>
 
 <label>Nguyên liệu</label>
@@ -94,93 +118,106 @@ video{width:100%;border-radius:14px;margin-top:10px}
   <button class="save" onclick="save()">✅ LƯU</button>
 </div>
 
-<!-- QR -->
+<!-- QR LIB -->
 <script src="https://unpkg.com/html5-qrcode"></script>
 
-<!-- Firebase -->
+<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-/* ===== FIREBASE ===== */
+/* ================= FIREBASE ================= */
 firebase.initializeApp({
-  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+  apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
-const db=firebase.database();
+const db = firebase.database();
 
-/* ===== TODAY ===== */
-date.value=new Date().toISOString().slice(0,10);
+/* ================= SET TODAY ================= */
+date.value = new Date().toISOString().slice(0,10);
 
-/* ===== QR ===== */
-let scanner;
+/* ================= QR SCAN ================= */
+let scanner = null;
 
 function startScan(){
-  preview.style.display="block";
-  scanner=new Html5Qrcode("preview");
+  const box = document.getElementById("preview");
+  box.style.display = "block";
+
+  if(scanner){
+    scanner.stop().catch(()=>{});
+  }
+
+  scanner = new Html5Qrcode("preview");
+
   scanner.start(
-    {facingMode:"environment"},
-    {fps:10,qrbox:250},
-    txt=>{
-      scanner.stop();
-      preview.style.display="none";
-      handleQR(txt);
-    }
-  );
+    { video: { facingMode: { ideal: "environment" } } }, // CHUẨN IPHONE
+    { fps: 10, qrbox: 250 },
+    text => {
+      scanner.stop().then(()=>{
+        box.style.display = "none";
+      });
+      handleQR(text);
+    },
+    error => {}
+  ).catch(err=>{
+    alert("❌ Không mở được camera. Kiểm tra quyền Camera.");
+  });
 }
 
+/* ================= HANDLE QR ================= */
 function handleQR(text){
-  // type=material&id=XXXX
-  const p={};
-  text.split("&").forEach(i=>{
-    const [k,v]=i.split("=");
-    p[k]=v;
+  // QR: type=material&id=XXXX
+  const params = {};
+  text.split("&").forEach(p=>{
+    const [k,v] = p.split("=");
+    params[k] = v;
   });
 
-  if(p.type==="material"){
-    loadMaterial(p.id);
+  if(params.type === "material"){
+    loadMaterial(params.id);
   }else{
     alert("❌ QR không hợp lệ");
   }
 }
 
+/* ================= LOAD MATERIAL ================= */
 function loadMaterial(id){
-  db.ref("materials/"+id).once("value").then(s=>{
-    if(!s.exists()){
+  db.ref("materials/" + id).once("value").then(snap=>{
+    if(!snap.exists()){
       alert("❌ Không tìm thấy tem");
       return;
     }
-    const d=s.val();
-    material.value=d.material;
-    lot.value=d.lot;
-    meter.value=d.meter;
+    const d = snap.val();
+    material.value = d.material || "";
+    lot.value = d.lot || "";
+    meter.value = d.meter || "";
   });
 }
 
-/* ===== SAVE ===== */
+/* ================= SAVE ================= */
 function save(){
-  const data={
-    date:date.value,
-    machine:machine.value,
-    axle:axle.value,
-    material:material.value,
-    lot:lot.value,
-    meterTem:Number(meter.value),
-    quantity:Number(quantity.value),
-    shift:shift.value,
-    person:person.value,
-    createdAt:Date.now()
+  const data = {
+    date: date.value,
+    machine: machine.value,
+    axle: axle.value,
+    material: material.value,
+    lot: lot.value,
+    meterTem: Number(meter.value),
+    quantity: Number(quantity.value),
+    shift: shift.value,
+    person: person.value,
+    createdAt: Date.now()
   };
 
-  if(!data.machine||!data.axle||!data.material||
-     !data.quantity||!data.shift||!data.person){
+  if(!data.machine || !data.axle || !data.material ||
+     !data.quantity || !data.shift || !data.person){
     alert("❗ Nhập đủ thông tin");
     return;
   }
 
   db.ref("production").push(data).then(()=>{
     alert("✅ Đã lưu sản lượng");
-    quantity.value="";
+    quantity.value = "";
     quantity.focus();
   });
 }
@@ -188,3 +225,5 @@ function save(){
 
 </body>
 </html>
+
+
