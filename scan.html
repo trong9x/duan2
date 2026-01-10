@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<body>
+<button onclick="openCam()">TEST CAMERA</button>
+<script>
+function openCam(){
+  navigator.mediaDevices.getUserMedia({video:true})
+    .then(()=>alert("✅ CAMERA OK"))
+    .catch(e=>alert("❌ "+e.name));
+}
+</script>
+</body>
+</html>
