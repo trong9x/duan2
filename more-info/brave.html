@@ -2,56 +2,53 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Nhập sản lượng</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nhập sản lượng QR</title>
 
 <style>
 *{box-sizing:border-box}
 body{margin:0;font-family:Arial;background:#f2f2f2}
-
-/* HEADER */
 .header{
   position:fixed;top:0;left:0;right:0;height:56px;
   background:#27ae60;color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:bold;z-index:10;
+  font-size:18px;font-weight:bold;z-index:10
 }
-
-/* CONTENT */
-.content{padding:70px 12px 90px}
+.content{padding:70px 12px 110px}
 .card{
   background:#fff;border-radius:18px;padding:16px;
   max-width:520px;margin:auto;
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
+  box-shadow:0 6px 18px rgba(0,0,0,.15)
 }
-
 label{font-weight:600;margin-top:12px;display:block;font-size:14px}
-select,input{
+input,select{
   width:100%;padding:14px;margin-top:6px;
   border-radius:14px;border:1px solid #ccc;font-size:16px
 }
-
-/* FOOTER */
+button{
+  width:100%;padding:16px;font-size:18px;
+  border:none;border-radius:18px;color:#fff
+}
+.scan{background:#2980b9;margin-bottom:12px}
+.save{background:#27ae60}
 .footer{
   position:fixed;bottom:0;left:0;right:0;
   background:#fff;padding:10px;
-  box-shadow:0 -4px 12px rgba(0,0,0,.15);
+  box-shadow:0 -4px 12px rgba(0,0,0,.15)
 }
-button{
-  width:100%;padding:16px;font-size:18px;
-  background:#27ae60;color:#fff;border:none;border-radius:18px
-}
-button:active{opacity:.85}
+video{width:100%;border-radius:14px;margin-top:10px}
 </style>
 </head>
 
 <body>
 
-<div class="header">📱 Nhập sản lượng</div>
+<div class="header">📦 Nhập sản lượng (QR)</div>
 
 <div class="content">
 <div class="card">
+
+<button class="scan" onclick="startScan()">📷 Quét QR tem</button>
+<video id="preview" style="display:none"></video>
 
 <label>Ngày</label>
 <input id="date" type="date">
@@ -60,7 +57,6 @@ button:active{opacity:.85}
 <select id="machine">
   <option value="">-- chọn máy --</option>
   <option>1101D</option><option>1102D</option><option>1103F</option>
-  <option>1104F</option><option>1107B</option><option>1108B</option>
 </select>
 
 <label>Trục</label>
@@ -70,18 +66,22 @@ button:active{opacity:.85}
 </select>
 
 <label>Nguyên liệu</label>
-<input id="material" placeholder="150/96 bghbs">
+<input id="material" readonly>
 
-<label>Số lượng</label>
-<input id="quantity" type="number" inputmode="numeric">
+<label>Số lô</label>
+<input id="lot" readonly>
 
-<label>Vị trí</label>
-<input id="position" placeholder="A-25">
+<label>Số mét tem</label>
+<input id="meter" readonly>
+
+<label>Số lượng nhập</label>
+<input id="quantity" type="number">
 
 <label>Ca</label>
 <select id="shift">
-  <option value="a">Ca A</option>
-  <option value="b">Ca B</option>
+  <option value="">-- chọn ca --</option>
+  <option value="A">Ca A</option>
+  <option value="B">Ca B</option>
 </select>
 
 <label>Người phụ trách</label>
@@ -91,36 +91,70 @@ button:active{opacity:.85}
 </div>
 
 <div class="footer">
-  <button onclick="save()">✅ OK</button>
+  <button class="save" onclick="save()">✅ LƯU</button>
 </div>
+
+<!-- QR -->
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+/* ===== FIREBASE ===== */
 firebase.initializeApp({
   apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
   databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
 const db=firebase.database();
 
-/* ===== set ngày hôm nay ===== */
+/* ===== TODAY ===== */
 date.value=new Date().toISOString().slice(0,10);
 
-/* ===== AUTO FOCUS ===== */
-const order=["date","machine","axle","material","quantity","position","shift","person"];
-order.forEach((id,i)=>{
-  const el=document.getElementById(id);
-  if(!el) return;
-  el.addEventListener("change",()=>focusNext(i));
-  el.addEventListener("keyup",e=>{
-    if(e.key==="Enter") focusNext(i);
+/* ===== QR ===== */
+let scanner;
+
+function startScan(){
+  preview.style.display="block";
+  scanner=new Html5Qrcode("preview");
+  scanner.start(
+    {facingMode:"environment"},
+    {fps:10,qrbox:250},
+    txt=>{
+      scanner.stop();
+      preview.style.display="none";
+      handleQR(txt);
+    }
+  );
+}
+
+function handleQR(text){
+  // type=material&id=XXXX
+  const p={};
+  text.split("&").forEach(i=>{
+    const [k,v]=i.split("=");
+    p[k]=v;
   });
-});
-function focusNext(i){
-  const next=document.getElementById(order[i+1]);
-  if(next) next.focus();
+
+  if(p.type==="material"){
+    loadMaterial(p.id);
+  }else{
+    alert("❌ QR không hợp lệ");
+  }
+}
+
+function loadMaterial(id){
+  db.ref("materials/"+id).once("value").then(s=>{
+    if(!s.exists()){
+      alert("❌ Không tìm thấy tem");
+      return;
+    }
+    const d=s.val();
+    material.value=d.material;
+    lot.value=d.lot;
+    meter.value=d.meter;
+  });
 }
 
 /* ===== SAVE ===== */
@@ -129,22 +163,26 @@ function save(){
     date:date.value,
     machine:machine.value,
     axle:axle.value,
-    material:material.value.trim(),
+    material:material.value,
+    lot:lot.value,
+    meterTem:Number(meter.value),
     quantity:Number(quantity.value),
-    position:position.value.trim(),
     shift:shift.value,
-    person:person.value.trim(),
+    person:person.value,
     createdAt:Date.now()
   };
 
-  if(!data.date||!data.machine||!data.axle||!data.material||
+  if(!data.machine||!data.axle||!data.material||
      !data.quantity||!data.shift||!data.person){
     alert("❗ Nhập đủ thông tin");
     return;
   }
 
-  db.ref(`production/${data.machine}/axle_${data.axle}`).push(data)
-    .then(()=>location.href="my-skill-mobile.html#sanluong");
+  db.ref("production").push(data).then(()=>{
+    alert("✅ Đã lưu sản lượng");
+    quantity.value="";
+    quantity.focus();
+  });
 }
 </script>
 
