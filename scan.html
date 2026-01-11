@@ -32,15 +32,20 @@ button{
 <body>
 
 <h2>📷 Quét QR</h2>
-<button onclick="startScan()">BẮT ĐẦU QUÉT</button>
+<button id="btnScan">BẮT ĐẦU QUÉT</button>
 <button onclick="stopScan()">DỪNG</button>
 
 <div id="preview"></div>
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+<!-- ❗ KHÓA PHIÊN BẢN ỔN ĐỊNH -->
+<script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
 
 <script>
 let scanner = null;
+
+document.getElementById("btnScan").addEventListener("click", () => {
+  startScan();
+});
 
 function startScan(){
   if(scanner){
@@ -50,18 +55,15 @@ function startScan(){
   scanner = new Html5Qrcode("preview");
 
   scanner.start(
-    { facingMode: "environment" }, // ✅ DUY NHẤT CÁCH ĐÚNG CHO iOS
-    {
-      fps: 10,
-      qrbox: 250
-    },
+    { facingMode: "environment" }, // ✅ iOS CHỈ CHẤP NHẬN CÁI NÀY
+    { fps: 10, qrbox: 250 },
     (text) => {
-      alert("✅ ĐÃ QUÉT: " + text);
-      stopScan(); // 👈 BẮT BUỘC (iOS rất kỵ)
+      alert("✅ QR: " + text);
+      stopScan();
     },
     () => {}
   ).catch(err=>{
-    alert("❌ Không mở được camera: " + err);
+    alert("❌ Camera lỗi: " + err);
   });
 }
 
@@ -77,4 +79,6 @@ function stopScan(){
 
 </body>
 </html>
+
+
 
