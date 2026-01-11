@@ -67,6 +67,8 @@ body.dark .axle.done{background:#1e3b2c}
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
+  const IS_ADMIN = localStorage.getItem("role") === "admin";
+
 firebase.initializeApp({
  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
  authDomain:"quan-ly-may-det.firebaseapp.com",
@@ -176,7 +178,7 @@ const MACHINES=[
  {key:"1406",label:"1406E"},
  {key:"1407",label:"1407E"},
  {key:"1408",label:"1408E"},
-{key:"1409",label:"1409E"},
+ {key:"1409",label:"1409E"},
  {key:"1410",label:"1410E"},
  {key:"1411",label:"1411E"},
  {key:"1412",label:"1412E"},
@@ -226,75 +228,107 @@ function updateDash(){
 }
 
 function render(){
- container.innerHTML="";
- resetDash();
- applyLang();
- const t=TEXT[lang];
+  container.innerHTML="";
+  resetDash();
+  applyLang();
+  const t = TEXT[lang];
 
- MACHINES.forEach(m=>{
-  const card=document.createElement("div");
-  card.className="machine-card collapsed";
+  MACHINES.forEach(m=>{
+    const card=document.createElement("div");
+    card.className="machine-card collapsed";
+    card.dataset.key = m.key;
 
-  card.innerHTML=`
-   <div class="machine-header">
-    <span class="machine-title">${t.machine} ${m.label}</span>
-    <input class="order-input" placeholder="${t.order}">
-   </div>
-   <div class="machine-body"><div class="axle-grid"></div></div>
-  `;
+    card.innerHTML=`
+      <div class="machine-header">
+        <span class="machine-title">
+          ${t.machine} ${m.label}
+        </span>
+        <input class="order-input" placeholder="${t.order}">
+      </div>
+      <div class="machine-body">
+        <div class="axle-grid"></div>
+      </div>
+    `;
 
-  const orderInput=card.querySelector(".order-input");
-  db.ref(`machines/${m.key}/order`)
-    .on("value",s=>orderInput.value=s.val()||"");
-  orderInput.oninput=()=>db.ref(`machines/${m.key}/order`).set(orderInput.value);
+    const orderInput = card.querySelector(".order-input");
+    // ORDER
+    db.ref(`machines/${m.key}/order`)
+      .on("value", s => orderInput.value = s.val() || "");
 
-  card.querySelector(".machine-title").onclick=()=>card.classList.toggle("collapsed");
+    orderInput.oninput = () => {
+      db.ref(`machines/${m.key}/order`).set(orderInput.value);
+    }
+    card.querySelector(".machine-title").onclick =
+      () => card.classList.toggle("collapsed");
 
-  const grid=card.querySelector(".axle-grid");
+    const grid = card.querySelector(".axle-grid");
 
-  for(let a=1;a<=AXLES;a++){
-   const axle=document.createElement("div");
-   axle.className="axle";
-   axle.innerHTML=`
-    <b>${t.axle} ${a}</b>
-    <input placeholder="${t.material}">
-    <input type="number" placeholder="${t.hour}">
-    <input placeholder="${t.location}">
-    <div class="note"></div>
-   `;
+    for(let a=1;a<=AXLES;a++){
+      const axle=document.createElement("div");
+      axle.className="axle";
+      axle.innerHTML = `
+  <b>${t.axle} ${a}</b>
+  <input class="material-input" placeholder="${t.material}">
+  <input type="number" class="qty-input" placeholder="Số lượng">
+  <input type="number" class="hour-input" placeholder="${t.hour}">
+  <input class="loc-input" placeholder="${t.location}">
+  <div class="note"></div>
+`;
 
-   const [mat,hr,loc]=axle.querySelectorAll("input");
-   const note=axle.querySelector(".note");
+//const//
+      const mat = axle.querySelector(".material-input");
+      const qty = axle.querySelector(".qty-input");
+      const hr  = axle.querySelector(".hour-input");
+      const loc = axle.querySelector(".loc-input");
+      const note = axle.querySelector(".note");
+      // chọn trục
+      mat.onclick = () => {
+        db.ref("ui/selectedAxle").set({
+          machineKey: m.key,
+          axle: a,
+          time: Date.now()
+        });
+      };
 
-   db.ref(`machines/${m.key}/axles/${a}`)
-    .on("value",s=>{
-     DASH.total++;
-     if(!s.exists()){DASH.empty++;updateDash();return;}
-     const d=s.val();
-     mat.value=d.material||"";
-     hr.value=d.hour||"";
-     loc.value=d.location||"";
+      // dữ liệu trục
+      db.ref(`machines/${m.key}/axles/${a}`).on("value", s=>{
+        DASH.total++;
+        if(!s.exists()){DASH.empty++;updateDash();return;}
+        const d=s.val();
 
-     axle.classList.remove("warning","done");
-     if(!d.hour){DASH.empty++}
-else if(d.hour<72){axle.classList.add("warning");note.textContent=t.warn;DASH.warning++}
-     else{axle.classList.add("done");note.textContent="✅ OK";DASH.done++}
-     updateDash();
-    });
+        mat.value=d.material||""; 
+        qty.value = d.qty || ""; 
+        hr.value=d.hour||"";
+        loc.value=d.location||"";
 
-   axle.oninput=()=>db.ref(`machines/${m.key}/axles/${a}`).set({
-    material:mat.value,
-    hour:hr.value,
-    location:loc.value,
-    updatedAt:Date.now()
-   });
+        axle.classList.remove("warning","done");
+        if(!d.hour){DASH.empty++}
+        else if(d.hour<72){
+          axle.classList.add("warning");
+          note.textContent=t.warn;
+          DASH.warning++;
+        }else{
+          axle.classList.add("done");
+          note.textContent="✅ OK";
+          DASH.done++;
+        }
+        updateDash();
+      });
 
-   grid.appendChild(axle);
-  }
+      axle.oninput=()=>db.ref(`machines/${m.key}/axles/${a}`).set({
+        material:mat.value,
+        hour:hr.value,
+        location:loc.value,
+        updatedAt:Date.now()
+      });
 
-  container.appendChild(card);
- });
+      grid.appendChild(axle);
+    }
+
+    container.appendChild(card);
+  });
 }
+
 
 search.value="";
 search.oninput=()=>{
@@ -308,7 +342,34 @@ expandAll.onclick=()=>document.querySelectorAll(".machine-card").forEach(c=>c.cl
 collapseAll.onclick=()=>document.querySelectorAll(".machine-card").forEach(c=>c.classList.add("collapsed"));
 
 render();
-</script>
 
+//--dd--//
+db.ref("selected_soi").on("value", s => {
+  if (!s.exists()) return;
+
+  const { name, qty } = s.val();
+
+  db.ref("ui/selectedAxle").once("value").then(sel => {
+    if (!sel.exists()) return;
+
+    const { machineKey, axle } = sel.val();
+
+    // ✅ đổ tên sợi
+    db.ref(`machines/${machineKey}/axles/${axle}/material`).set(name);
+
+    // ✅ đổ số lượng
+    db.ref(`machines/${machineKey}/axles/${axle}/qty`).set(qty || 0);
+
+    // ❌ KHÔNG đụng tới order
+    // ❌ KHÔNG lock đơn
+
+    // clear
+    db.ref("selected_soi").remove();
+    db.ref("ui/selectedAxle").remove();
+  });
+});
+
+
+</script>
 </body>
 </html>

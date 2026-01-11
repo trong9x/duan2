@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý sợi</title>
+
+<style>
+body{
+  font-family: Arial, sans-serif;
+  background:#f5f5f5;
+  padding:15px;
+}
+h2{margin-bottom:10px}
+input,button{
+  padding:8px;
+  font-size:14px;
+}
+button{cursor:pointer}
+.box{
+  background:#fff;
+  padding:10px;
+  border-radius:6px;
+  margin-bottom:10px;
+}
+#soiList li{
+  background:#fff;
+  margin-bottom:6px;
+  padding:8px;
+  border-radius:6px;
+  display:flex;
+  gap:6px;
+  align-items:center;
+}
+#soiList input{flex:1}
+.assign{
+  background:#3498db;
+  color:#fff;
+  border:none;
+}
+.del{
+  background:#e74c3c;
+  color:#fff;
+  border:none;
+}
+.add{
+  background:#2ecc71;
+  color:#fff;
+  border:none;
+}
+</style>
+</head>
+
+<body>
+
+<h2>🧵 QUẢN LÝ SỢI (CLICK GÁN)</h2>
+
+<!-- SEARCH -->
+<div class="box">
+  <input id="searchSoi" placeholder="🔍 Gõ 100 / 150 / 330 ..." style="width:100%">
+</div>
+
+<!-- ADD -->
+<div class="box" style="display:flex;gap:6px">
+  <input id="soiName" placeholder="Tên sợi (VD: P-DTY100D/36)">
+  <input id="soiQty" type="number" placeholder="Số lượng">
+  <button class="add" onclick="addSoi()">➕ Thêm</button>
+</div>
+
+<!-- LIST -->
+<ul id="soiList" style="list-style:none;padding:0"></ul>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<script>
+/* 🔥 FIREBASE CONFIG */
+firebase.initializeApp({
+  apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  authDomain: "quan-ly-may-det.firebaseapp.com",
+  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "quan-ly-may-det"
+});
+
+const db = firebase.database();
+const soiRef = db.ref("soi");
+
+/* ===== RENDER ===== */
+soiRef.on("value", snap => {
+  const list = document.getElementById("soiList");
+  list.innerHTML = "";
+
+  snap.forEach(s => {
+    const v = s.val();
+    const li = document.createElement("li");
+
+    li.innerHTML = `
+      <input value="${v.name || ""}" readonly>
+      <input class="qty-input" type="number" value="${v.qty || 0}">
+      <button class="assign">Gán</button>
+      <button class="del">X</button>
+    `;
+
+    list.appendChild(li);
+
+    const qtyInput = li.querySelector(".qty-input");
+
+    /* 🔥 LƯU SỐ LƯỢNG */
+    qtyInput.onblur = () => {
+      soiRef.child(s.key).update({
+        qty: Number(qtyInput.value) || 0
+      });
+    };
+    qtyInput.onkeydown = e => {
+      if (e.key === "Enter") qtyInput.blur();
+    };
+
+    /* ✅ GÁN SỢI + SỐ LƯỢNG */
+    li.querySelector(".assign").onclick = e => {
+      e.stopPropagation();
+      db.ref("selected_soi").set({
+        name: v.name,
+        qty: Number(qtyInput.value) || 0,
+        time: Date.now()
+      });
+      alert("✅ Đã gán sợi + số lượng");
+    };
+
+    /* ❌ XOÁ */
+    li.querySelector(".del").onclick = e => {
+      e.stopPropagation();
+      if (confirm("Xóa sợi này?")) {
+        soiRef.child(s.key).remove();
+      }
+    };
+  });
+
+  filterSoi();
+});
+
+/* ===== ADD ===== */
+function addSoi(){
+  const name = soiName.value.trim();
+  const qty  = Number(soiQty.value) || 0;
+  if(!name) return alert("Nhập tên sợi");
+
+  soiRef.push({
+    name,
+    qty,
+    createdAt: Date.now()
+  });
+
+  soiName.value = "";
+  soiQty.value = "";
+}
+
+/* ===== FILTER ===== */
+function filterSoi(){
+  const key = searchSoi.value.trim();
+  document.querySelectorAll("#soiList li").forEach(li => {
+    const name = li.children[0].value;
+    const m = name.match(/(\d+)\s*D/i);
+    const d = m ? m[1] : "";
+    li.style.display = d.startsWith(key) ? "" : "none";
+  });
+}
+searchSoi.oninput = filterSoi;
+</script>
+
+</body>
+</html>

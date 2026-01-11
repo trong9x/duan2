@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý người dùng – SINCETECH</title>
+
+<style>
+body{
+  margin:0;
+  font-family:'Segoe UI',Arial,sans-serif;
+  background:#f4f6f8;
+}
+
+.container{
+  max-width:1100px;
+  margin:30px auto;
+  background:#fff;
+  padding:20px;
+  border-radius:14px;
+  box-shadow:0 10px 30px rgba(0,0,0,.1);
+}
+
+h2{margin:0 0 16px}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+th,td{
+  padding:12px;
+  border-bottom:1px solid #e0e0e0;
+  font-size:14px;
+  vertical-align:top;
+}
+
+th{background:#f0f2f5}
+
+.badge{
+  display:inline-block;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+}
+
+.admin{background:#e3f2fd;color:#0b5ed7}
+.staff{background:#e8f5e9;color:#2e7d32}
+.disabled{background:#fdecea;color:#c62828}
+
+button{
+  margin:4px 0;
+  padding:6px 10px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:13px;
+}
+
+.lock{background:#f44336;color:#fff}
+.unlock{background:#4caf50;color:#fff}
+.role{background:#0b5ed7;color:#fff}
+.delete{background:#555;color:#fff}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h2>👥 Quản lý người dùng (Admin)</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Email</th>
+        <th>Họ tên</th>
+        <th>Role</th>
+        <th>Trạng thái</th>
+        <th>Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="userTable"></tbody>
+  </table>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script src="firebase.js"></script>
+
+<script>
+/* ===============================
+   🔐 CHỈ ADMIN MỚI ĐƯỢC VÀO
+================================ */
+auth.onAuthStateChanged(user=>{
+  if(!user){
+    location.href="login.html";
+    return;
+  }
+
+  db.collection("users").doc(user.uid).get()
+    .then(doc=>{
+      if(!doc.exists || doc.data().role !== "admin"){
+        alert("⛔ Bạn không có quyền Admin");
+        location.href="index.html";
+      }else{
+        loadUsers(); // ✅ chỉ admin mới load
+      }
+    });
+});
+
+/* ===============================
+   📥 LOAD DANH SÁCH USER
+================================ */
+function loadUsers(){
+  db.collection("users").onSnapshot(snapshot=>{
+    const tbody = document.getElementById("userTable");
+    tbody.innerHTML="";
+
+    snapshot.forEach(doc=>{
+      const u = doc.data();
+      const tr = document.createElement("tr");
+
+      const role = u.role || "staff";
+      const disabled = u.disabled === true;
+
+      tr.innerHTML = `
+        <td>${u.email || ""}</td>
+        <td>${u.name || ""}</td>
+
+        <td>
+          <span class="badge ${role}">${role}</span><br>
+          ${
+            role === "admin"
+              ? `<button class="role" onclick="setRole('${doc.id}','staff')">Hạ staff</button>`
+              : `<button class="role" onclick="setRole('${doc.id}','admin')">Lên admin</button>`
+          }
+        </td>
+
+        <td>
+          ${
+            disabled
+              ? `<span class="badge disabled">Khoá</span>`
+              : `Hoạt động`
+          }
+        </td>
+
+        <td>
+          ${
+            disabled
+              ? `<button class="unlock" onclick="unlockUser('${doc.id}')">Mở</button>`
+              : `<button class="lock" onclick="lockUser('${doc.id}')">Khoá</button>`
+          }
+          <br>
+          <button class="delete" onclick="deleteUser('${doc.id}')">Xoá</button>
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+    });
+  });
+}
+
+/* ===============================
+   🔒 KHOÁ USER
+================================ */
+function lockUser(uid){
+  if(!confirm("Khoá tài khoản này?")) return;
+
+  db.collection("users").doc(uid).update({
+    disabled: true
+  });
+}
+
+/* ===============================
+   🔓 MỞ USER
+================================ */
+function unlockUser(uid){
+  if(!confirm("Mở khoá tài khoản này?")) return;
+
+  db.collection("users").doc(uid).update({
+    disabled: false
+  });
+}
+
+/* ===============================
+   🔁 ĐỔI ROLE
+================================ */
+function setRole(uid, role){
+  if(!confirm("Đổi quyền user này?")) return;
+
+  db.collection("users").doc(uid).update({
+    role: role
+  });
+}
+
+/* ===============================
+   ❌ XOÁ USER (CHỈ FIRESTORE)
+================================ */
+function deleteUser(uid){
+  if(!confirm("Xoá user này? (KHÔNG xoá Auth)")) return;
+
+  db.collection("users").doc(uid).delete();
+}
+</script>
+
+</body>
+</html>

@@ -2,8 +2,9 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nhập sản lượng QR</title>
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Nhập sản lượng</title>
 
 <style>
 *{box-sizing:border-box}
@@ -14,15 +15,15 @@ body{margin:0;font-family:Arial;background:#f2f2f2}
   position:fixed;top:0;left:0;right:0;height:56px;
   background:#27ae60;color:#fff;
   display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:bold;z-index:10
+  font-size:18px;font-weight:bold;z-index:10;
 }
 
 /* CONTENT */
-.content{padding:70px 12px 110px}
+.content{padding:70px 12px 100px}
 .card{
   background:#fff;border-radius:18px;padding:16px;
   max-width:520px;margin:auto;
-  box-shadow:0 6px 18px rgba(0,0,0,.15)
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
 }
 
 label{font-weight:600;margin-top:12px;display:block;font-size:14px}
@@ -31,44 +32,41 @@ input,select{
   border-radius:14px;border:1px solid #ccc;font-size:16px
 }
 
-button{
-  width:100%;padding:16px;font-size:18px;
-  border:none;border-radius:18px;color:#fff
-}
-.scan{background:#2980b9;margin-bottom:12px}
-.save{background:#27ae60}
-
-/* QR PREVIEW (BẮT BUỘC CHO IPHONE) */
-#preview{
-  display:none;
-  width:100%;
-  min-height:260px;
-  background:#000;
+button.scan{
+  margin-top:8px;
+  background:#2980b9;
+  border:none;color:#fff;
+  padding:12px;
   border-radius:14px;
-  overflow:hidden;
-  margin-bottom:12px;
+  width:100%;font-size:16px
+}
+
+video{
+  width:100%;
+  margin-top:12px;
+  border-radius:16px;
+  display:none;
 }
 
 /* FOOTER */
 .footer{
   position:fixed;bottom:0;left:0;right:0;
   background:#fff;padding:10px;
-  box-shadow:0 -4px 12px rgba(0,0,0,.15)
+  box-shadow:0 -4px 12px rgba(0,0,0,.15);
+}
+button.save{
+  width:100%;padding:16px;font-size:18px;
+  background:#27ae60;color:#fff;border:none;border-radius:18px
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📦 Nhập sản lượng (QR)</div>
+<div class="header">📦 Nhập sản lượng</div>
 
 <div class="content">
 <div class="card">
-
-<button class="scan" onclick="startScan()">📷 Quét QR tem</button>
-
-<!-- ⚠️ PHẢI LÀ DIV – KHÔNG DÙNG VIDEO -->
-<div id="preview"></div>
 
 <label>Ngày</label>
 <input id="date" type="date">
@@ -79,31 +77,43 @@ button{
   <option>1101D</option>
   <option>1102D</option>
   <option>1103F</option>
+  <option>1104F</option>
 </select>
 
 <label>Trục</label>
 <select id="axle">
   <option value="">-- chọn trục --</option>
-  <option>L1</option>
-  <option>L2</option>
-  <option>L3</option>
+  <option>L1</option><option>L2</option><option>L3</option>
+  <option>L4</option><option>L5</option>
 </select>
 
-<label>Nguyên liệu</label>
-<input id="material" readonly>
+<hr>
+
+<label>QR / Bộ số</label>
+<input id="qr" placeholder="QR|TEN|LO|SO_SOI|SO_MET">
+<button class="scan" type="button" onclick="startScan()">📷 Quét QR</button>
+
+<video id="video" playsinline></video>
+
+<label>Tên vật liệu</label>
+<input id="materialName">
 
 <label>Số lô</label>
-<input id="lot" readonly>
+<input id="lot">
 
-<label>Số mét tem</label>
-<input id="meter" readonly>
-
-<label>Số lượng nhập</label>
+<label>Số sợi</label>
 <input id="quantity" type="number">
+
+<label>Số mét</label>
+<input id="meter" type="number">
+
+<hr>
+
+<label>Vị trí</label>
+<input id="position">
 
 <label>Ca</label>
 <select id="shift">
-  <option value="">-- chọn ca --</option>
   <option value="A">Ca A</option>
   <option value="B">Ca B</option>
 </select>
@@ -115,115 +125,117 @@ button{
 </div>
 
 <div class="footer">
-  <button class="save" onclick="save()">✅ LƯU</button>
+  <button class="save" onclick="save()">✅ OK</button>
 </div>
-
-<!-- QR LIB -->
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
 <script>
-/* ================= FIREBASE ================= */
+/* ===== FIREBASE INIT ===== */
 firebase.initializeApp({
-  apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
 const db = firebase.database();
 
-/* ================= SET TODAY ================= */
+/* ===== SET DATE ===== */
 date.value = new Date().toISOString().slice(0,10);
 
-/* ================= QR SCAN ================= */
-let scanner = null;
-
-function startScan(){
-  const box = document.getElementById("preview");
-  box.style.display = "block";
-
-  if(scanner){
-    scanner.stop().catch(()=>{});
-  }
-
-  scanner = new Html5Qrcode("preview");
-
-  scanner.start(
-    { video: { facingMode: { ideal: "environment" } } }, // CHUẨN IPHONE
-    { fps: 10, qrbox: 250 },
-    text => {
-      scanner.stop().then(()=>{
-        box.style.display = "none";
-      });
-      handleQR(text);
-    },
-    error => {}
-  ).catch(err=>{
-    alert("❌ Không mở được camera. Kiểm tra quyền Camera.");
-  });
-}
-
-/* ================= HANDLE QR ================= */
-function handleQR(text){
-  // QR: type=material&id=XXXX
-  const params = {};
-  text.split("&").forEach(p=>{
-    const [k,v] = p.split("=");
-    params[k] = v;
-  });
-
-  if(params.type === "material"){
-    loadMaterial(params.id);
-  }else{
-    alert("❌ QR không hợp lệ");
-  }
-}
-
-/* ================= LOAD MATERIAL ================= */
-function loadMaterial(id){
-  db.ref("materials/" + id).once("value").then(snap=>{
-    if(!snap.exists()){
-      alert("❌ Không tìm thấy tem");
-      return;
-    }
-    const d = snap.val();
-    material.value = d.material || "";
-    lot.value = d.lot || "";
-    meter.value = d.meter || "";
-  });
-}
-
-/* ================= SAVE ================= */
+/* ===== SAVE DATA ===== */
 function save(){
   const data = {
     date: date.value,
     machine: machine.value,
     axle: axle.value,
-    material: material.value,
-    lot: lot.value,
-    meterTem: Number(meter.value),
-    quantity: Number(quantity.value),
+    material:{
+      qr: qr.value.trim(),
+      name: materialName.value.trim(),
+      lot: lot.value.trim(),
+      fiber: Number(quantity.value),
+      meter: Number(meter.value)
+    },
+    position: position.value.trim(),
     shift: shift.value,
-    person: person.value,
+    person: person.value.trim(),
     createdAt: Date.now()
   };
 
-  if(!data.machine || !data.axle || !data.material ||
-     !data.quantity || !data.shift || !data.person){
-    alert("❗ Nhập đủ thông tin");
+  if(!data.machine || !data.axle || !data.material.name ||
+     !quantity.value || !data.person){
+    alert("❗ Nhập thiếu thông tin");
     return;
   }
 
-  db.ref("production").push(data).then(()=>{
-    alert("✅ Đã lưu sản lượng");
-    quantity.value = "";
-    quantity.focus();
+  db.ref(`production/${data.machine}/axle_${data.axle}`)
+    .push(data)
+    .then(()=>{
+      alert("✅ Đã lưu");
+      location.reload();
+    })
+    .catch(err=>{
+      alert("❌ Lỗi lưu dữ liệu");
+      console.error(err);
+    });
+}
+
+/* ===== QR SCAN (SAFARI / iOS) ===== */
+let videoStream = null;
+let detector = null;
+
+async function startScan(){
+  if(!("BarcodeDetector" in window)){
+    alert("❗ Safari cần iOS 16+");
+    return;
+  }
+
+  detector = new BarcodeDetector({formats:["qr_code"]});
+  video.style.display="block";
+
+  videoStream = await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
   });
+
+  video.srcObject = videoStream;
+  await video.play();
+  scanLoop();
+}
+
+async function scanLoop(){
+  if(video.readyState === video.HAVE_ENOUGH_DATA){
+    const codes = await detector.detect(video);
+    if(codes.length){
+      const value = codes[0].rawValue;
+      qr.value = value;
+      autoParse(value);
+      stopScan();
+      return;
+    }
+  }
+  requestAnimationFrame(scanLoop);
+}
+
+function stopScan(){
+  video.pause();
+  video.style.display="none";
+  if(videoStream){
+    videoStream.getTracks().forEach(t=>t.stop());
+  }
+}
+
+/* ===== AUTO PARSE QR ===== */
+function autoParse(text){
+  const p = text.split("|");
+  if(p.length >= 5){
+    qr.value = p[0];
+    materialName.value = p[1];
+    lot.value = p[2];
+    quantity.value = p[3];
+    meter.value = p[4];
+  }
 }
 </script>
 
 </body>
 </html>
-
-

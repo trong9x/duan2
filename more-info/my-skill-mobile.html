@@ -50,29 +50,60 @@ firebase.initializeApp({
 const db=firebase.database();
 const list=document.getElementById("list");
 
-db.ref("production").on("value",snap=>{
+db.ref("production").on("value", snap=>{
   list.innerHTML="";
-  const data=snap.val()||{};
-  Object.keys(data).forEach(m=>{
-    Object.keys(data[m]).forEach(a=>{
-      Object.keys(data[m][a]).forEach(id=>{
-        const d=data[m][a][id];
-        if(!d||!d.material) return;
+  const raw=snap.val()||{};
+  let rows=[];
 
-        const card=document.createElement("div");
-        card.className="card";
-        card.innerHTML=`
-          <div class="row"><b>Ngày:</b> ${d.date||""}</div>
-          <div class="row"><b>Máy:</b> ${m} | <b>Trục:</b> ${a.replace("axle_","")}</div>
-          <div class="row"><b>Nguyên liệu:</b> ${d.material}</div>
-          <div class="row"><b>Vị trí:</b> ${d.position||""}</div>
-          <div class="row"><b>SL:</b> ${d.quantity} | <b>Ca:</b> ${d.shift}</div>
-          <div class="row"><b>Người:</b> ${d.person}</div>
-          <button class="del" onclick="del('${m}','${a}','${id}')">❌ Xóa</button>
-        `;
-        list.appendChild(card);
+  Object.keys(raw).forEach(m=>{
+    Object.keys(raw[m]).forEach(a=>{
+      Object.keys(raw[m][a]).forEach(id=>{
+        const d=raw[m][a][id];
+        if(!d) return;
+
+        rows.push({ m, a, id, d });
       });
     });
+  });
+
+  /* 🔥 Sắp xếp mới → cũ */
+  rows.sort((x,y)=>(y.d.createdAt||0)-(x.d.createdAt||0));
+
+  rows.forEach(({m,a,id,d})=>{
+    const mat=d.material||{};
+    const card=document.createElement("div");
+    card.className="card";
+
+    card.innerHTML=`
+      <div class="row"><b>Ngày:</b> ${d.date||""}</div>
+
+      <div class="row">
+        <b>Máy:</b> ${m} |
+        <b>Trục:</b> ${a.replace("axle_","")}
+      </div>
+
+      <div class="row"><b>QR:</b> ${mat.qr||""}</div>
+      <div class="row"><b>Nguyên liệu:</b> ${mat.name||""}</div>
+
+      <div class="row">
+        <b>Số lô:</b> ${mat.lot||""} |
+        <b>Sợi:</b> ${mat.fiber||""}
+      </div>
+
+      <div class="row"><b>Số mét:</b> ${mat.meter||""}</div>
+
+      <div class="row"><b>Vị trí:</b> ${d.position||""}</div>
+
+      <div class="row">
+        <b>SL:</b> ${d.quantity||0} |
+        <b>Ca:</b> ${d.shift||""}
+      </div>
+
+      <div class="row"><b>Người:</b> ${d.person||""}</div>
+
+      <button class="del" onclick="del('${m}','${a}','${id}')">❌ Xóa</button>
+    `;
+    list.appendChild(card);
   });
 });
 
