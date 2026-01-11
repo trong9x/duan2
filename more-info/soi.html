@@ -2,80 +2,133 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Quản lý sợi</title>
 
 <style>
+*{box-sizing:border-box}
 body{
-  font-family: Arial, sans-serif;
-  background:#f5f5f5;
-  padding:15px;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+  background:#f2f3f5;
+  padding:12px;
 }
-h2{margin-bottom:10px}
-input,button{
-  padding:8px;
-  font-size:14px;
+
+h2{
+  text-align:center;
+  margin:6px 0 12px;
+  font-size:20px;
 }
-button{cursor:pointer}
+
+/* CARD */
 .box{
   background:#fff;
-  padding:10px;
-  border-radius:6px;
+  padding:12px;
+  border-radius:14px;
   margin-bottom:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.05);
 }
+
+/* INPUT */
+input{
+  width:100%;
+  padding:12px;
+  font-size:16px;
+  border-radius:10px;
+  border:1px solid #ddd;
+}
+
+/* BUTTON */
+button{
+  padding:12px;
+  font-size:15px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+}
+
+.add{background:#2ecc71;color:#fff}
+.assign{background:#3498db;color:#fff}
+.del{background:#e74c3c;color:#fff}
+
+/* SEARCH STICKY */
+.search-box{
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+/* LIST */
+#soiList{
+  list-style:none;
+  padding:0;
+  margin:0;
+}
+
 #soiList li{
   background:#fff;
+  border-radius:14px;
+  padding:12px;
+  margin-bottom:10px;
+  box-shadow:0 2px 6px rgba(0,0,0,.06);
+}
+
+.soi-name{
+  font-weight:600;
+  font-size:16px;
   margin-bottom:6px;
-  padding:8px;
-  border-radius:6px;
+}
+
+.row{
   display:flex;
-  gap:6px;
+  gap:8px;
   align-items:center;
 }
-#soiList input{flex:1}
-.assign{
-  background:#3498db;
-  color:#fff;
-  border:none;
+
+.qty-input{
+  flex:1;
+  padding:10px;
+  font-size:16px;
+  text-align:center;
 }
-.del{
-  background:#e74c3c;
-  color:#fff;
-  border:none;
+
+.row button{
+  min-width:70px;
 }
-.add{
-  background:#2ecc71;
-  color:#fff;
-  border:none;
+
+/* MOBILE TOUCH */
+button, input{
+  touch-action:manipulation;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🧵 QUẢN LÝ SỢI (CLICK GÁN)</h2>
+<h2>🧵 QUẢN LÝ SỢI</h2>
 
 <!-- SEARCH -->
-<div class="box">
-  <input id="searchSoi" placeholder="🔍 Gõ 100 / 150 / 330 ..." style="width:100%">
+<div class="box search-box">
+  <input id="searchSoi" placeholder="🔍 Gõ 100 / 150 / 330">
 </div>
 
 <!-- ADD -->
-<div class="box" style="display:flex;gap:6px">
+<div class="box">
   <input id="soiName" placeholder="Tên sợi (VD: P-DTY100D/36)">
+  <div style="height:8px"></div>
   <input id="soiQty" type="number" placeholder="Số lượng">
-  <button class="add" onclick="addSoi()">➕ Thêm</button>
+  <div style="height:10px"></div>
+  <button class="add" style="width:100%" onclick="addSoi()">➕ Thêm sợi</button>
 </div>
 
 <!-- LIST -->
-<ul id="soiList" style="list-style:none;padding:0"></ul>
+<ul id="soiList"></ul>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <script>
-/* 🔥 FIREBASE CONFIG */
 firebase.initializeApp({
   apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
   authDomain: "quan-ly-may-det.firebaseapp.com",
@@ -86,87 +139,74 @@ firebase.initializeApp({
 const db = firebase.database();
 const soiRef = db.ref("soi");
 
-/* ===== RENDER ===== */
-soiRef.on("value", snap => {
-  const list = document.getElementById("soiList");
-  list.innerHTML = "";
+/* RENDER */
+soiRef.on("value", snap=>{
+  const list=document.getElementById("soiList");
+  list.innerHTML="";
 
-  snap.forEach(s => {
-    const v = s.val();
-    const li = document.createElement("li");
+  snap.forEach(s=>{
+    const v=s.val();
+    const li=document.createElement("li");
 
-    li.innerHTML = `
-      <input value="${v.name || ""}" readonly>
-      <input class="qty-input" type="number" value="${v.qty || 0}">
-      <button class="assign">Gán</button>
-      <button class="del">X</button>
+    li.innerHTML=`
+      <div class="soi-name">${v.name||""}</div>
+      <div class="row">
+        <input class="qty-input" type="number" value="${v.qty||0}">
+        <button class="assign">Gán</button>
+        <button class="del">X</button>
+      </div>
     `;
-
     list.appendChild(li);
 
-    const qtyInput = li.querySelector(".qty-input");
+    const qtyInput=li.querySelector(".qty-input");
 
-    /* 🔥 LƯU SỐ LƯỢNG */
-    qtyInput.onblur = () => {
-      soiRef.child(s.key).update({
-        qty: Number(qtyInput.value) || 0
-      });
+    qtyInput.onblur=()=>{
+      soiRef.child(s.key).update({qty:Number(qtyInput.value)||0});
     };
-    qtyInput.onkeydown = e => {
-      if (e.key === "Enter") qtyInput.blur();
-    };
+    qtyInput.onkeydown=e=>{if(e.key==="Enter")qtyInput.blur();};
 
-    /* ✅ GÁN SỢI + SỐ LƯỢNG */
-    li.querySelector(".assign").onclick = e => {
-      e.stopPropagation();
+    li.querySelector(".assign").onclick=()=>{
       db.ref("selected_soi").set({
-        name: v.name,
-        qty: Number(qtyInput.value) || 0,
-        time: Date.now()
+        name:v.name,
+        qty:Number(qtyInput.value)||0,
+        time:Date.now()
       });
-      alert("✅ Đã gán sợi + số lượng");
+      alert("✅ Đã gán sợi");
     };
 
-    /* ❌ XOÁ */
-    li.querySelector(".del").onclick = e => {
-      e.stopPropagation();
-      if (confirm("Xóa sợi này?")) {
-        soiRef.child(s.key).remove();
-      }
+    li.querySelector(".del").onclick=()=>{
+      if(confirm("Xóa sợi này?")) soiRef.child(s.key).remove();
     };
   });
 
   filterSoi();
 });
 
-/* ===== ADD ===== */
+/* ADD */
 function addSoi(){
-  const name = soiName.value.trim();
-  const qty  = Number(soiQty.value) || 0;
-  if(!name) return alert("Nhập tên sợi");
+  const name=soiName.value.trim();
+  const qty=Number(soiQty.value)||0;
+  if(!name)return alert("Nhập tên sợi");
 
-  soiRef.push({
-    name,
-    qty,
-    createdAt: Date.now()
-  });
-
-  soiName.value = "";
-  soiQty.value = "";
+  soiRef.push({name,qty,createdAt:Date.now()});
+  soiName.value="";
+  soiQty.value="";
 }
 
-/* ===== FILTER ===== */
+/* FILTER */
 function filterSoi(){
-  const key = searchSoi.value.trim();
-  document.querySelectorAll("#soiList li").forEach(li => {
-    const name = li.children[0].value;
-    const m = name.match(/(\d+)\s*D/i);
-    const d = m ? m[1] : "";
-    li.style.display = d.startsWith(key) ? "" : "none";
+  const key=searchSoi.value.trim();
+  document.querySelectorAll("#soiList li").forEach(li=>{
+    const name=li.querySelector(".soi-name").innerText;
+    const m=name.match(/(\d+)\s*D/i);
+    const d=m?m[1]:"";
+    li.style.display=d.startsWith(key)||!key?"":"none";
   });
 }
-searchSoi.oninput = filterSoi;
+searchSoi.oninput=filterSoi;
 </script>
 
 </body>
 </html>
+
+
