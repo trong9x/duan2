@@ -270,7 +270,14 @@ function render(){
   <b>${t.axle} ${a}</b>
   <input class="material-input" placeholder="${t.material}">
   <input type="number" class="qty-input" placeholder="Số lượng">
-  <input type="number" class="hour-input" placeholder="${t.hour}">
+  <input
+  type="number"
+  class="hour-input"
+  placeholder="${t.hour}"
+  inputmode="numeric"
+  enterkeyhint="next"
+  data-axle="${a}"
+>
   <input class="loc-input" placeholder="${t.location}">
   <div class="note"></div>
 `;
@@ -281,6 +288,40 @@ function render(){
       const hr  = axle.querySelector(".hour-input");
       const loc = axle.querySelector(".loc-input");
       const note = axle.querySelector(".note");
+
+      //CODE MOBILE//
+      // 📱 MOBILE: gõ xong giờ → nhảy sang trục kế
+hr.onkeydown = (e) => {
+  if (e.key === "Enter") {
+    e.preventDefault();
+
+    const nextAxle = a + 1;
+    const nextHour = card.querySelector(
+      `.hour-input[data-axle="${nextAxle}"]`
+    );
+
+    if (nextHour) {
+      nextHour.focus();
+      nextHour.select();
+    } else {
+      // trục cuối → đóng bàn phím
+      hr.blur();
+    }
+  }
+};
+
+// ⚡ TỰ ĐIỀN GIỜ = GIỜ TRỤC TRƯỚC (nếu có)
+hr.onfocus = () => {
+  if (!hr.value && a > 1) {
+    const prev = card.querySelector(
+      `.hour-input[data-axle="${a - 1}"]`
+    );
+    if (prev && prev.value) {
+      hr.value = prev.value;
+    }
+  }
+};
+
       // chọn trục
       mat.onclick = () => {
         db.ref("ui/selectedAxle").set({
@@ -315,12 +356,14 @@ function render(){
         updateDash();
       });
 
-      axle.oninput=()=>db.ref(`machines/${m.key}/axles/${a}`).set({
-        material:mat.value,
-        hour:hr.value,
-        location:loc.value,
-        updatedAt:Date.now()
-      });
+      axle.oninput = () => db.ref(`machines/${m.key}/axles/${a}`).update({
+  material: mat.value,
+  qty: qty.value,      // 🔥 DÒNG QUAN TRỌNG
+  hour: hr.value,
+  location: loc.value,
+  updatedAt: Date.now()
+});
+
 
       grid.appendChild(axle);
     }
