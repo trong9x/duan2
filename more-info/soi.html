@@ -2,127 +2,85 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Quản lý sợi</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý sợi – Tạo đơn</title>
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
-  background:#f2f3f5;
-  padding:12px;
-}
+body{margin:0;font-family:Arial;background:#f2f3f5;padding:12px}
+h2{text-align:center;margin-bottom:10px}
 
-h2{
-  text-align:center;
-  margin:6px 0 12px;
-  font-size:20px;
-}
-
-/* CARD */
-.box{
-  background:#fff;
-  padding:12px;
-  border-radius:14px;
-  margin-bottom:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.05);
-}
-
-/* INPUT */
-input{
-  width:100%;
-  padding:12px;
-  font-size:16px;
-  border-radius:10px;
-  border:1px solid #ddd;
-}
-
-/* BUTTON */
-button{
-  padding:12px;
-  font-size:15px;
-  border:none;
-  border-radius:10px;
-  font-weight:600;
-}
+.box{background:#fff;padding:12px;border-radius:14px;margin-bottom:10px}
+input,select{width:100%;padding:12px;font-size:16px;border-radius:10px;border:1px solid #ddd}
+button{padding:12px;border-radius:10px;border:none;font-weight:600;cursor:pointer}
 
 .add{background:#2ecc71;color:#fff}
 .assign{background:#3498db;color:#fff}
 .del{background:#e74c3c;color:#fff}
 
-/* SEARCH STICKY */
-.search-box{
-  position:sticky;
-  top:0;
-  z-index:10;
-}
+#soiList{list-style:none;padding:0;margin:0}
+#soiList li{background:#fff;padding:12px;border-radius:12px;margin-bottom:8px}
+.row{display:flex;gap:6px}
+.qty-input{flex:1;text-align:center}
 
-/* LIST */
-#soiList{
-  list-style:none;
-  padding:0;
-  margin:0;
-}
-
-#soiList li{
-  background:#fff;
-  border-radius:14px;
-  padding:12px;
-  margin-bottom:10px;
-  box-shadow:0 2px 6px rgba(0,0,0,.06);
-}
-
-.soi-name{
-  font-weight:600;
-  font-size:16px;
+.order-item{
+  background:#eaf2ff;
+  padding:8px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:8px;
   margin-bottom:6px;
 }
-
-.row{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.qty-input{
-  flex:1;
-  padding:10px;
-  font-size:16px;
+.order-item input{
+  width:80px;
+  padding:6px;
   text-align:center;
-}
-
-.row button{
-  min-width:70px;
-}
-
-/* MOBILE TOUCH */
-button, input{
-  touch-action:manipulation;
 }
 </style>
 </head>
 
 <body>
 
-<h2>🧵 QUẢN LÝ SỢI</h2>
+<h2>🧵 QUẢN LÝ SỢI – TẠO ĐƠN</h2>
 
-<!-- SEARCH -->
-<div class="box search-box">
-  <input id="searchSoi" placeholder="🔍 Gõ 100 / 150 / 330">
-</div>
-
-<!-- ADD -->
+<!-- THÊM SỢI -->
 <div class="box">
-  <input id="soiName" placeholder="Tên sợi (VD: P-DTY100D/36)">
-  <div style="height:8px"></div>
+  <input id="soiName" placeholder="Tên sợi">
+  <div style="height:6px"></div>
   <input id="soiQty" type="number" placeholder="Số lượng">
-  <div style="height:10px"></div>
+  <div style="height:8px"></div>
   <button class="add" style="width:100%" onclick="addSoi()">➕ Thêm sợi</button>
 </div>
 
-<!-- LIST -->
+<!-- DANH SÁCH SỢI -->
 <ul id="soiList"></ul>
+
+<!-- ĐƠN HÀNG -->
+<div class="box">
+  <h3>📦 Đơn hàng hiện tại</h3>
+  <div id="orderList"></div>
+
+  <b>🏭 Chọn máy</b>
+  <select id="machineKey">
+    <option value="1101">1101D</option>
+    <option value="1102">1102D</option>
+    <option value="1103">1103F</option>
+  </select>
+
+  <div style="height:6px"></div>
+  <b>Từ trục</b>
+  <select id="fromAxle"></select>
+
+  <div style="height:6px"></div>
+  <b>Đến trục</b>
+  <select id="toAxle"></select>
+
+  <div style="height:10px"></div>
+  <button class="assign" style="width:100%" onclick="createOrder()">
+    ⚙️ TẠO ĐƠN → GÁN TRỤC
+  </button>
+</div>
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -131,82 +89,150 @@ button, input{
 <script>
 firebase.initializeApp({
   apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-  authDomain: "quan-ly-may-det.firebaseapp.com",
-  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "quan-ly-may-det"
+  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
 
 const db = firebase.database();
 const soiRef = db.ref("soi");
 
-/* RENDER */
+let currentOrder = [];
+
+/* INIT L1 → L8 */
+for(let i=1;i<=8;i++){
+  fromAxle.innerHTML += `<option value="${i}">L${i}</option>`;
+  toAxle.innerHTML   += `<option value="${i}">L${i}</option>`;
+}
+fromAxle.value = 1;
+toAxle.value   = 8;
+
+/* RENDER DANH SÁCH SỢI */
 soiRef.on("value", snap=>{
-  const list=document.getElementById("soiList");
-  list.innerHTML="";
-
+  soiList.innerHTML="";
   snap.forEach(s=>{
-    const v=s.val();
-    const li=document.createElement("li");
+    const v = s.val();
+    const li = document.createElement("li");
 
-    li.innerHTML=`
-      <div class="soi-name">${v.name||""}</div>
+    li.innerHTML = `
+      <b>${v.name}</b>
       <div class="row">
         <input class="qty-input" type="number" value="${v.qty||0}">
-        <button class="assign">Gán</button>
+        <button class="assign">+ Đơn</button>
         <button class="del">X</button>
       </div>
     `;
-    list.appendChild(li);
+    soiList.appendChild(li);
 
-    const qtyInput=li.querySelector(".qty-input");
+    const qtyInput = li.querySelector(".qty-input");
 
-    qtyInput.onblur=()=>{
-      soiRef.child(s.key).update({qty:Number(qtyInput.value)||0});
-    };
-    qtyInput.onkeydown=e=>{if(e.key==="Enter")qtyInput.blur();};
-
-    li.querySelector(".assign").onclick=()=>{
-      db.ref("selected_soi").set({
-        name:v.name,
-        qty:Number(qtyInput.value)||0,
-        time:Date.now()
+    li.querySelector(".assign").onclick = () => {
+      currentOrder.push({
+        name: v.name,
+        qty: Number(qtyInput.value) || 0
       });
-      alert("✅ Đã gán sợi");
+      renderOrder();
     };
 
-    li.querySelector(".del").onclick=()=>{
-      if(confirm("Xóa sợi này?")) soiRef.child(s.key).remove();
+    li.querySelector(".del").onclick = () => {
+      if(confirm("Xóa sợi?")) soiRef.child(s.key).remove();
     };
   });
-
-  filterSoi();
 });
 
-/* ADD */
-function addSoi(){
-  const name=soiName.value.trim();
-  const qty=Number(soiQty.value)||0;
-  if(!name)return alert("Nhập tên sợi");
+/* RENDER ĐƠN – CHO SỬA SL */
+function renderOrder(){
+  orderList.innerHTML = "";
 
-  soiRef.push({name,qty,createdAt:Date.now()});
+  currentOrder.forEach((s, i) => {
+    orderList.innerHTML += `
+      <div class="order-item">
+        <div style="flex:1">${i+1}. ${s.name}</div>
+
+        <input
+          type="number"
+          value="${s.qty}"
+          onchange="updateOrderQty(${i}, this.value)"
+        />
+
+        <button class="del" onclick="removeOrderItem(${i})">❌</button>
+      </div>
+    `;
+  });
+}
+
+function updateOrderQty(index, value){
+  currentOrder[index].qty = Number(value) || 0;
+}
+
+function removeOrderItem(index){
+  if(!confirm("Xóa sợi khỏi đơn?")) return;
+  currentOrder.splice(index,1);
+  renderOrder();
+}
+
+/* THÊM SỢI */
+function addSoi(){
+  if(!soiName.value.trim()) return alert("Nhập tên sợi");
+  soiRef.push({
+    name: soiName.value,
+    qty: Number(soiQty.value) || 0,
+    createdAt: Date.now()
+  });
   soiName.value="";
   soiQty.value="";
 }
 
-/* FILTER */
-function filterSoi(){
-  const key=searchSoi.value.trim();
-  document.querySelectorAll("#soiList li").forEach(li=>{
-    const name=li.querySelector(".soi-name").innerText;
-    const m=name.match(/(\d+)\s*D/i);
-    const d=m?m[1]:"";
-    li.style.display=d.startsWith(key)||!key?"":"none";
+/* TẠO ĐƠN – GÁN TRỤC (KHÔNG GIỚI HẠN) */
+function createOrder(){
+  if(currentOrder.length === 0){
+    alert("Chưa có sợi trong đơn");
+    return;
+  }
+
+  const machine = machineKey.value;
+  const from = Number(fromAxle.value);
+  const to   = Number(toAxle.value);
+
+  if(from > to){
+    alert("Sai trục");
+    return;
+  }
+
+  const base = db.ref(`machines/${machine}/axles`);
+
+  // clear trục
+  for(let i=from;i<=to;i++){
+    base.child(i).remove();
+  }
+
+  // gán – lặp sợi nếu thiếu
+  let idx = 0;
+  for(let axle = from; axle <= to; axle++){
+    const s = currentOrder[idx % currentOrder.length];
+
+    base.child(axle).set({
+      material: s.name,
+      qty: s.qty,
+      hour: 0,
+      location: "",
+      updatedAt: Date.now()
+    });
+
+    idx++;
+  }
+
+  db.ref("orders").push({
+    machine,
+    fromAxle: from,
+    toAxle: to,
+    items: currentOrder,
+    createdAt: Date.now()
   });
+
+  currentOrder = [];
+  renderOrder();
+  alert(`🔥 Đã gán L${from} → L${to} cho máy ${machine}`);
 }
-searchSoi.oninput=filterSoi;
 </script>
 
 </body>
 </html>
-
-

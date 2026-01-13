@@ -53,11 +53,27 @@ body.dark .axle.done{background:#1e3b2c}
 </div>
 
 <div id="dashboard">
- <div class="dash-card red"><div class="num" id="dashWarning">0</div><div>Trục &lt; 72H</div></div>
- <div class="dash-card green"><div class="num" id="dashDone">0</div><div>Trục ≥ 72H</div></div>
- <div class="dash-card gray"><div class="num" id="dashEmpty">0</div><div>Chưa nhập</div></div>
- <div class="dash-card blue"><div class="num" id="dashTotal">0</div><div>Tổng trục</div></div>
+  <div class="dash-card red" id="dashCardWarning">
+    <div class="num" id="dashWarning">0</div>
+    <div>Trục &lt; 72H</div>
+  </div>
+
+  <div class="dash-card green" id="dashCardDone">
+    <div class="num" id="dashDone">0</div>
+    <div>Trục ≥ 72H</div>
+  </div>
+
+  <div class="dash-card gray" id="dashCardEmpty">
+    <div class="num" id="dashEmpty">0</div>
+    <div>Chưa nhập</div>
+  </div>
+
+  <div class="dash-card blue" id="dashCardAll">
+    <div class="num" id="dashTotal">0</div>
+    <div>Tổng trục</div>
+  </div>
 </div>
+
 
 <input id="search" placeholder="🔍 Tìm máy / đơn hàng">
 <p id="tip"></p>
@@ -353,9 +369,23 @@ hr.onfocus = () => {
           note.textContent="✅ OK";
           DASH.done++;
         }
+        // ===== FILTER THEO DASHBOARD (ĐÚNG SCOPE) =====
+if (FILTER_MODE === "lt72") {
+  axle.style.display = (d.hour && d.hour < 72) ? "" : "none";
+}
+else if (FILTER_MODE === "done") {
+  axle.style.display = (d.hour >= 72) ? "" : "none";
+}
+else if (FILTER_MODE === "empty") {
+  axle.style.display = (!d.hour) ? "" : "none";
+}
+else {
+  axle.style.display = "";
+}
+
+
         updateDash();
       });
-
       axle.oninput = () => db.ref(`machines/${m.key}/axles/${a}`).update({
   material: mat.value,
   qty: qty.value,      // 🔥 DÒNG QUAN TRỌNG
@@ -364,9 +394,21 @@ hr.onfocus = () => {
   updatedAt: Date.now()
 });
 
-
       grid.appendChild(axle);
     }
+    // ===== SAU KHI LỌC TRỤC → QUYẾT ĐỊNH HIỆN / ẨN MÁY =====
+const axles = grid.querySelectorAll(".axle");
+let hasVisibleAxle = false;
+
+axles.forEach(ax => {
+  if (ax.style.display !== "none") {
+    hasVisibleAxle = true;
+  }
+});
+
+// nếu máy KHÔNG còn trục nào hợp lệ → ẩn máy
+card.style.display = hasVisibleAxle ? "" : "none";
+
 
     container.appendChild(card);
   });
@@ -385,6 +427,29 @@ expandAll.onclick=()=>document.querySelectorAll(".machine-card").forEach(c=>c.cl
 collapseAll.onclick=()=>document.querySelectorAll(".machine-card").forEach(c=>c.classList.add("collapsed"));
 
 render();
+// ===== CLICK DASHBOARD ĐỂ LỌC =====
+let FILTER_MODE = "all"; // all | lt72 | done | empty
+
+dashCardWarning.onclick = () => {
+  FILTER_MODE = "lt72";
+  render();
+};
+
+dashCardDone.onclick = () => {
+  FILTER_MODE = "done";
+  render();
+};
+
+dashCardEmpty.onclick = () => {
+  FILTER_MODE = "empty";
+  render();
+};
+
+dashCardAll.onclick = () => {
+  FILTER_MODE = "all";
+  render();
+};
+
 
 //--dd--//
 db.ref("selected_soi").on("value", s => {
