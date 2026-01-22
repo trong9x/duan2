@@ -2,276 +2,360 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>BẢNG ĐƠN HÀNG GẤP | 紧急订单</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>紧急订单 | Bảng đơn hàng gấp</title>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
-body {
-  font-family: Arial, sans-serif;
-  background: #f4f6f8;
-  padding: 20px;
+  .action-col{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
 }
-h2 { text-align: center; }
+.action-col button{
+  width:42px;
+  height:36px;
+  border-radius:8px;
+}
 
-.controls {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+:root{
+  --blue:#2563eb;
+  --blue-dark:#1e40af;
+  --green:#22c55e;
+  --yellow:#facc15;
+  --red:#ef4444;
+  --gray:#6b7280;
 }
-input, button { padding: 6px; }
-button {
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.add-btn { background: #16a34a; color: #fff; }
-.filter-btn { background: #2563eb; color: #fff; }
-.reset-btn { background: #6b7280; color: #fff; }
-.done-btn { background: #22c55e; color: #fff; }
-.undo-btn { background: #f97316; color: #fff; }
-.edit { background: #facc15; }
-.delete { background: #ef4444; color: #fff; }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-}
-th, td {
-  padding: 8px;
-  border-bottom: 1px solid #ddd;
-  text-align: center;
-}
-th { background: #2563eb; color: #fff; }
+body{font-family:Arial;background:#f4f6f8;padding:16px}
+h2{text-align:center;margin-bottom:10px}
 
-.urgent { background: #fee2e2; }
-.done {
-  background: #e5e7eb;
-  color: #6b7280;
-  text-decoration: line-through;
+/* ===== INPUT ===== */
+input,select,button{
+  padding:8px;
+  border-radius:6px;
+  border:1px solid #c7d2fe
+}
+button{border:none;font-weight:600;cursor:pointer}
+
+/* ===== BUTTON ===== */
+.add-btn{background:var(--green);color:#fff}
+.save-btn{background:#0ea5e9;color:#fff}
+.done-btn{background:#22c55e;color:#fff}
+.edit{background:#facc15}
+.delete{background:var(--red);color:#fff}
+
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden
+}
+th,td{
+  padding:8px;
+  border-bottom:1px solid #e5e7eb;
+  text-align:center
+}
+th{
+  background:linear-gradient(90deg,var(--blue),var(--blue-dark));
+  color:#fff
+}
+
+/* ===== TRẠNG THÁI ===== */
+.done{
+  background:#f1f5f9;
+  color:var(--gray);
+  text-decoration:line-through
+}
+
+/* ===== CẢNH BÁO ===== */
+.level-green{background:#f0fdf4}
+.level-yellow{background:#fffbeb}
+.level-red{
+  background:#fee2e2;
+  animation:blink 1.2s infinite;
+  font-weight:bold;
+}
+@keyframes blink{
+  0%{background:#fee2e2}
+  50%{background:#fecaca}
+  100%{background:#fee2e2}
+}
+
+/* ===== KHÁC ===== */
+.position-box{
+  background:#ecfeff;
+  border:1px solid #67e8f9;
+  color:#0e7490;
+  padding:4px 8px;
+  border-radius:6px;
+  font-weight:600
+}
+.locked{
+  padding:6px 12px;
+  background:#e5e7eb;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:600
+}
+
+/* ===== MOBILE ===== */
+@media(max-width:768px){
+  table,thead{display:none}
+  tbody tr{
+    display:block;
+    margin-bottom:12px;
+    border-radius:12px;
+    padding:10px;
+    box-shadow:0 2px 6px rgba(0,0,0,.15)
+  }
+  tbody td{
+    display:flex;
+    justify-content:space-between;
+    border:none;
+    padding:4px 0;
+  }
+  tbody td::before{
+    font-weight:600;
+    color:#374151;
+  }
+  tbody td:nth-child(1)::before{content:"订单";}
+  tbody td:nth-child(2)::before{content:"机器";}
+  tbody td:nth-child(3)::before{content:"原料";}
+  tbody td:nth-child(4)::before{content:"数量";}
+  tbody td:nth-child(5)::before{content:"日期";}
+  tbody td:nth-child(6)::before{content:"米数";}
+  tbody td:nth-child(7)::before{content:"员工";}
+  tbody td:nth-child(8)::before{content:"锭位";}
+  tbody td:nth-child(9)::before{content:"状态";}
 }
 </style>
 </head>
 
 <body>
 
-<h2>📦 BẢNG ĐƠN HÀNG GẤP | 紧急订单</h2>
-
-<div class="controls">
-  <input id="search" placeholder="🔍 搜索 / Tìm kiếm">
-  <button class="filter-btn" onclick="filterUrgent()">⏰ 紧急</button>
-  <button class="filter-btn" onclick="filterDone(true)">✅ 已完成</button>
-  <button class="filter-btn" onclick="filterDone(false)">⏳ 未完成</button>
-  <button class="reset-btn" onclick="loadAll()">♻️ 全部</button>
-</div>
+<h2>📦 紧急订单 | Bảng đơn hàng gấp</h2>
 
 <table>
 <thead>
 <tr>
-  <th>订单名<br>Tên đơn</th>
-  <th>机器<br>Tên máy</th>
-  <th>原料<br>Nguyên liệu</th>
-  <th>数量<br>Số lượng</th>
-  <th>日期<br>Ngày</th>
-  <th>状态<br>Trạng thái</th>
-  <th>操作<br>Hành động</th>
+  <th>订单</th><th>机器</th><th>原料</th><th>数量</th>
+  <th>日期</th><th>米数</th><th>员工</th>
+  <th>锭位</th><th>状态</th><th>操作</th>
 </tr>
 </thead>
 
-<!-- DÒNG NHẬP -->
 <tbody>
-<tr id="inputRow">
-  <td><input id="orderName" placeholder="Order A001"></td>
-  <td><input id="machine" placeholder="Máy 150"></td>
+<tr>
+  <td><input id="orderName"></td>
+  <td><input id="machine"></td>
   <td><input id="material"></td>
   <td><input id="quantity" type="number"></td>
   <td><input id="date" type="date"></td>
-  <td>⏳ 未完成</td>
-  <td><button class="add-btn" id="addBtn">添加</button></td>
+  <td><input id="meters" type="number"></td>
+  <td>
+    <select id="worker">
+      <option value="">-- Chọn NV --</option>
+    </select>
+  </td>
+  <td><i>Hoàn thành mới nhập</i></td>
+  <td>⏳</td>
+  <td><button id="addBtn" class="add-btn">添加</button></td>
 </tr>
 </tbody>
 
-<!-- DỮ LIỆU -->
 <tbody id="tableBody"></tbody>
 </table>
 
 <script>
-// 🔥 FIREBASE
+// ================== CẤU HÌNH ==================
+const ADMIN_PASSWORD = "123456";
+
+// ================== NHÂN VIÊN ==================
+const workers=["Chị Lan","Anh Tuấn","Anh Hùng","Chị Hoa","Anh Nam"];
+
+// ================== FIREBASE ==================
 firebase.initializeApp({
-  apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
-  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
-const db = firebase.database();
-const soiRef = db.ref("soi");
+const soiRef=firebase.database().ref("soi");
 
-// DOM
-const orderNameInput = document.getElementById("orderName");
-const machineInput = document.getElementById("machine");
-const materialInput = document.getElementById("material");
-const quantityInput = document.getElementById("quantity");
-const dateInput = document.getElementById("date");
-const tableBody = document.getElementById("tableBody");
-const searchInput = document.getElementById("search");
-const addBtn = document.getElementById("addBtn");
+// ================== DOM ==================
+const orderName=document.getElementById("orderName");
+const machine=document.getElementById("machine");
+const material=document.getElementById("material");
+const quantity=document.getElementById("quantity");
+const date=document.getElementById("date");
+const meters=document.getElementById("meters");
+const worker=document.getElementById("worker");
+const tableBody=document.getElementById("tableBody");
+const addBtn=document.getElementById("addBtn");
 
-dateInput.valueAsDate = new Date();
+let editKey=null;
+let alerted=false;
+date.valueAsDate=new Date();
 
-// ➕ ADD
-addBtn.onclick = addOrder;
-function addOrder() {
-  if (
-    !orderNameInput.value ||
-    !machineInput.value ||
-    !materialInput.value ||
-    !quantityInput.value ||
-    !dateInput.value
-  ) {
+// load NV
+workers.forEach(n=>{
+  const o=document.createElement("option");
+  o.value=n;o.textContent=n;
+  worker.appendChild(o);
+});
+
+// ADD
+addBtn.onclick=()=>{
+  if(!orderName.value||!machine.value||!material.value||
+     !quantity.value||!date.value||!meters.value||!worker.value){
     alert("请输入完整信息 / Nhập đủ thông tin");
     return;
   }
 
-  soiRef.push({
-    orderName: orderNameInput.value,
-    machine: machineInput.value,
-    material: materialInput.value,
-    quantity: quantityInput.value,
-    date: dateInput.value,
-    done: false,
-    createdAt: Date.now()
-  });
+  const data={
+    orderName:orderName.value,
+    machine:machine.value,
+    material:material.value,
+    quantity:quantity.value,
+    date:date.value,
+    meters:meters.value,
+    worker:worker.value
+  };
 
-  orderNameInput.value = "";
-  machineInput.value = "";
-  materialInput.value = "";
-  quantityInput.value = "";
-  dateInput.valueAsDate = new Date();
-}
+  // 🔴 NẾU ĐANG SỬA → UPDATE
+  if(editKey){
+    soiRef.child(editKey).update(data);
+    editKey = null;
+    addBtn.textContent = "添加";
+    addBtn.className   = "add-btn";
+  }
+  // 🟢 NẾU THÊM MỚI → PUSH
+  else{
+    soiRef.push({
+      ...data,
+      position:"",
+      done:false,
+      createdAt:Date.now()
+    });
+  }
 
-// 🔄 LOAD ALL
-function loadAll() {
-  soiRef.off();
-  soiRef.on("value", snap => {
-    render(snap.val());
-  });
-}
+  // reset form
+  orderName.value=machine.value=material.value=
+  quantity.value=meters.value=worker.value="";
+  date.valueAsDate=new Date();
+};
 
-// 🧠 RENDER
-function render(data, filterFn = null) {
-  tableBody.innerHTML = "";
-  if (!data) return;
+// LOAD
+soiRef.on("value",s=>{
+  render(s.val());
+  alertRed(s.val());
+});
 
-  Object.keys(data).forEach(key => {
-    const o = data[key];
-    if (!o || !o.material) return;
-    if (filterFn && !filterFn(o)) return;
+// RENDER
+function render(data){
+  tableBody.innerHTML="";
+  if(!data) return;
 
-    const diff = (Date.now() - new Date(o.date)) / 86400000;
-    const tr = document.createElement("tr");
+  Object.entries(data).forEach(([k,o])=>{
+    const tr=document.createElement("tr");
+    const diff=(Date.now()-new Date(o.date))/86400000;
 
-    if (diff >= 2 && !o.done) tr.classList.add("urgent");
-    if (o.done) tr.classList.add("done");
+    if(!o.done){
+      if(diff>=5) tr.classList.add("level-red");
+      else if(diff>=2) tr.classList.add("level-yellow");
+      else tr.classList.add("level-green");
+    }
+    if(o.done) tr.classList.add("done");
 
-    tr.innerHTML = `
+    tr.innerHTML=`
       <td>${o.orderName}</td>
       <td>${o.machine}</td>
       <td>${o.material}</td>
       <td>${o.quantity}</td>
       <td>${o.date}</td>
-      <td>${o.done ? "✅ 已完成" : "⏳ 未完成"}</td>
+      <td>${o.meters} m</td>
+      <td>${o.worker}</td>
+      <td>${o.position||"-"}</td>
+      <td>${o.done?"🟢 已完成":"⚠️ 紧急 / Gấp"}</td>
+
       <td>
-        <button class="${o.done ? "undo-btn" : "done-btn"}"
-          onclick="toggleDone('${key}', ${o.done})">
-          ${o.done ? "↩ 未完成" : "✔ 已完成"}
-        </button>
-        <button class="edit"
-          onclick="editOrder(
-            '${key}',
-            '${o.orderName}',
-            '${o.machine}',
-            '${o.material}',
-            '${o.quantity}',
-            '${o.date}'
-          )">✏️</button>
-        <button class="delete"
-          onclick="deleteOrder('${key}')">🗑️</button>
+        <div class="action-col">
+          ${
+            o.done
+            ? `<span class="locked">🔒</span>`
+            : `
+              <button class="done-btn" title="Hoàn thành"
+                onclick="done('${k}')">✔</button>
+
+              <button class="edit" title="Sửa"
+                onclick="editRow('${k}')">✏️</button>
+            `
+          }
+          <button class="delete" title="Xoá"
+            onclick="del('${k}')">🗑️</button>
+        </div>
       </td>
     `;
     tableBody.appendChild(tr);
   });
 }
 
-// 🔁 DONE
-function toggleDone(key, current) {
-  soiRef.child(key).update({ done: !current });
+// DONE
+function done(key){
+  const pos=prompt("📦 输入锭位 / Nhập vị trí con suốt");
+  if(!pos) return;
+  soiRef.child(key).update({done:true,position:pos});
 }
 
-// 🗑️ DELETE
-function deleteOrder(key) {
-  if (confirm("删除此订单？ / Xoá đơn này?")) {
-    soiRef.child(key).remove();
+// DELETE
+function del(k){
+  const pw=prompt("🔐 输入管理员密码 / Nhập mật khẩu quản lý");
+  if(pw!==ADMIN_PASSWORD) return alert("❌ Sai mật khẩu");
+  if(confirm("Xoá đơn này?")) soiRef.child(k).remove();
+}
+
+// ALERT ĐƠN ĐỎ
+function alertRed(data){
+  if(alerted||!data) return;
+  const n=Object.values(data).filter(o=>{
+    const d=(Date.now()-new Date(o.date))/86400000;
+    return !o.done && d>=5;
+  }).length;
+  if(n>0){
+    alerted=true;
+    alert(`⚠️ 有 ${n} 个红色订单！\nCó ${n} đơn quá hạn!`);
   }
 }
+function editRow(key){
+  soiRef.child(key).once("value", snap=>{
+    const o = snap.val();
 
-// ✏️ EDIT
-function editOrder(key, orderName, machine, m, q, d) {
-  orderNameInput.value = orderName;
-  machineInput.value = machine;
-  materialInput.value = m;
-  quantityInput.value = q;
-  dateInput.value = d;
+    if(o.done){
+      alert("❌ 已完成订单不能修改\nĐơn đã hoàn thành không được sửa");
+      return;
+    }
 
-  addBtn.onclick = () => {
-    soiRef.child(key).update({
-      orderName: orderNameInput.value,
-      machine: machineInput.value,
-      material: materialInput.value,
-      quantity: quantityInput.value,
-      date: dateInput.value
-    });
+    editKey = key;
 
-    addBtn.onclick = addOrder;
-    orderNameInput.value = "";
-    machineInput.value = "";
-    materialInput.value = "";
-    quantityInput.value = "";
-    dateInput.valueAsDate = new Date();
-  };
-}
+    orderName.value = o.orderName;
+    machine.value   = o.machine;
+    material.value  = o.material;
+    quantity.value  = o.quantity;
+    date.value      = o.date;
+    meters.value    = o.meters;
+    worker.value    = o.worker;
 
-// 🔍 SEARCH (tên đơn + máy + nguyên liệu)
-searchInput.addEventListener("input", () => {
-  const kw = searchInput.value.toLowerCase();
-  soiRef.once("value", snap => {
-    render(snap.val(), o =>
-      o.orderName.toLowerCase().includes(kw) ||
-      o.machine.toLowerCase().includes(kw) ||
-      o.material.toLowerCase().includes(kw)
-    );
-  });
-});
-
-// ⏰ URGENT
-function filterUrgent() {
-  soiRef.once("value", snap => {
-    render(snap.val(), o =>
-      !o.done && (Date.now() - new Date(o.date)) / 86400000 >= 2
-    );
+    addBtn.textContent = "💾 保存 / Lưu";
+    addBtn.className   = "save-btn";
   });
 }
 
-// ✅ / ⏳ FILTER
-function filterDone(status) {
-  soiRef.once("value", snap => {
-    render(snap.val(), o => o.done === status);
-  });
-}
-
-loadAll();
 </script>
 
 </body>
 </html>
+
