@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>BẢNG ĐƠN HÀNG GẤP | 紧急订单</title>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  padding: 20px;
+}
+h2 { text-align: center; }
+
+.controls {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+input, button { padding: 6px; }
+button {
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+.add-btn { background: #16a34a; color: #fff; }
+.filter-btn { background: #2563eb; color: #fff; }
+.reset-btn { background: #6b7280; color: #fff; }
+.done-btn { background: #22c55e; color: #fff; }
+.undo-btn { background: #f97316; color: #fff; }
+.edit { background: #facc15; }
+.delete { background: #ef4444; color: #fff; }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+th, td {
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+  text-align: center;
+}
+th { background: #2563eb; color: #fff; }
+
+.urgent { background: #fee2e2; }
+.done {
+  background: #e5e7eb;
+  color: #6b7280;
+  text-decoration: line-through;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📦 BẢNG ĐƠN HÀNG GẤP | 紧急订单</h2>
+
+<div class="controls">
+  <input id="search" placeholder="🔍 搜索 / Tìm kiếm">
+  <button class="filter-btn" onclick="filterUrgent()">⏰ 紧急</button>
+  <button class="filter-btn" onclick="filterDone(true)">✅ 已完成</button>
+  <button class="filter-btn" onclick="filterDone(false)">⏳ 未完成</button>
+  <button class="reset-btn" onclick="loadAll()">♻️ 全部</button>
+</div>
+
+<table>
+<thead>
+<tr>
+  <th>订单名<br>Tên đơn</th>
+  <th>机器<br>Tên máy</th>
+  <th>原料<br>Nguyên liệu</th>
+  <th>数量<br>Số lượng</th>
+  <th>日期<br>Ngày</th>
+  <th>状态<br>Trạng thái</th>
+  <th>操作<br>Hành động</th>
+</tr>
+</thead>
+
+<!-- DÒNG NHẬP -->
+<tbody>
+<tr id="inputRow">
+  <td><input id="orderName" placeholder="Order A001"></td>
+  <td><input id="machine" placeholder="Máy 150"></td>
+  <td><input id="material"></td>
+  <td><input id="quantity" type="number"></td>
+  <td><input id="date" type="date"></td>
+  <td>⏳ 未完成</td>
+  <td><button class="add-btn" id="addBtn">添加</button></td>
+</tr>
+</tbody>
+
+<!-- DỮ LIỆU -->
+<tbody id="tableBody"></tbody>
+</table>
+
+<script>
+// 🔥 FIREBASE
+firebase.initializeApp({
+  apiKey: "AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL: "https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db = firebase.database();
+const soiRef = db.ref("soi");
+
+// DOM
+const orderNameInput = document.getElementById("orderName");
+const machineInput = document.getElementById("machine");
+const materialInput = document.getElementById("material");
+const quantityInput = document.getElementById("quantity");
+const dateInput = document.getElementById("date");
+const tableBody = document.getElementById("tableBody");
+const searchInput = document.getElementById("search");
+const addBtn = document.getElementById("addBtn");
+
+dateInput.valueAsDate = new Date();
+
+// ➕ ADD
+addBtn.onclick = addOrder;
+function addOrder() {
+  if (
+    !orderNameInput.value ||
+    !machineInput.value ||
+    !materialInput.value ||
+    !quantityInput.value ||
+    !dateInput.value
+  ) {
+    alert("请输入完整信息 / Nhập đủ thông tin");
+    return;
+  }
+
+  soiRef.push({
+    orderName: orderNameInput.value,
+    machine: machineInput.value,
+    material: materialInput.value,
+    quantity: quantityInput.value,
+    date: dateInput.value,
+    done: false,
+    createdAt: Date.now()
+  });
+
+  orderNameInput.value = "";
+  machineInput.value = "";
+  materialInput.value = "";
+  quantityInput.value = "";
+  dateInput.valueAsDate = new Date();
+}
+
+// 🔄 LOAD ALL
+function loadAll() {
+  soiRef.off();
+  soiRef.on("value", snap => {
+    render(snap.val());
+  });
+}
+
+// 🧠 RENDER
+function render(data, filterFn = null) {
+  tableBody.innerHTML = "";
+  if (!data) return;
+
+  Object.keys(data).forEach(key => {
+    const o = data[key];
+    if (!o || !o.material) return;
+    if (filterFn && !filterFn(o)) return;
+
+    const diff = (Date.now() - new Date(o.date)) / 86400000;
+    const tr = document.createElement("tr");
+
+    if (diff >= 2 && !o.done) tr.classList.add("urgent");
+    if (o.done) tr.classList.add("done");
+
+    tr.innerHTML = `
+      <td>${o.orderName}</td>
+      <td>${o.machine}</td>
+      <td>${o.material}</td>
+      <td>${o.quantity}</td>
+      <td>${o.date}</td>
+      <td>${o.done ? "✅ 已完成" : "⏳ 未完成"}</td>
+      <td>
+        <button class="${o.done ? "undo-btn" : "done-btn"}"
+          onclick="toggleDone('${key}', ${o.done})">
+          ${o.done ? "↩ 未完成" : "✔ 已完成"}
+        </button>
+        <button class="edit"
+          onclick="editOrder(
+            '${key}',
+            '${o.orderName}',
+            '${o.machine}',
+            '${o.material}',
+            '${o.quantity}',
+            '${o.date}'
+          )">✏️</button>
+        <button class="delete"
+          onclick="deleteOrder('${key}')">🗑️</button>
+      </td>
+    `;
+    tableBody.appendChild(tr);
+  });
+}
+
+// 🔁 DONE
+function toggleDone(key, current) {
+  soiRef.child(key).update({ done: !current });
+}
+
+// 🗑️ DELETE
+function deleteOrder(key) {
+  if (confirm("删除此订单？ / Xoá đơn này?")) {
+    soiRef.child(key).remove();
+  }
+}
+
+// ✏️ EDIT
+function editOrder(key, orderName, machine, m, q, d) {
+  orderNameInput.value = orderName;
+  machineInput.value = machine;
+  materialInput.value = m;
+  quantityInput.value = q;
+  dateInput.value = d;
+
+  addBtn.onclick = () => {
+    soiRef.child(key).update({
+      orderName: orderNameInput.value,
+      machine: machineInput.value,
+      material: materialInput.value,
+      quantity: quantityInput.value,
+      date: dateInput.value
+    });
+
+    addBtn.onclick = addOrder;
+    orderNameInput.value = "";
+    machineInput.value = "";
+    materialInput.value = "";
+    quantityInput.value = "";
+    dateInput.valueAsDate = new Date();
+  };
+}
+
+// 🔍 SEARCH (tên đơn + máy + nguyên liệu)
+searchInput.addEventListener("input", () => {
+  const kw = searchInput.value.toLowerCase();
+  soiRef.once("value", snap => {
+    render(snap.val(), o =>
+      o.orderName.toLowerCase().includes(kw) ||
+      o.machine.toLowerCase().includes(kw) ||
+      o.material.toLowerCase().includes(kw)
+    );
+  });
+});
+
+// ⏰ URGENT
+function filterUrgent() {
+  soiRef.once("value", snap => {
+    render(snap.val(), o =>
+      !o.done && (Date.now() - new Date(o.date)) / 86400000 >= 2
+    );
+  });
+}
+
+// ✅ / ⏳ FILTER
+function filterDone(status) {
+  soiRef.once("value", snap => {
+    render(snap.val(), o => o.done === status);
+  });
+}
+
+loadAll();
+</script>
+
+</body>
+</html>

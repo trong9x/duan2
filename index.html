@@ -4,13 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SINCETECH VIET NAM</title>
+<link rel="shortcut icon" href="https://flashcards.world/favicon.ico" type="image/x-icon">
 
 <style>
 /* ===== BRAND COLOR ===== */
 :root{
-  --brand:#0B5ED7;
-  --brand-light:#1E88E5;
-  --bg:#f4f6f8;
+ --brand:#009127;
+  --brand-light:#123f68;
+  --bg:#e0d6da;
 }
 
 *{box-sizing:border-box}
@@ -18,14 +19,20 @@ body{
   margin:0;
   font-family:Arial, Helvetica, sans-serif;
   background:var(--bg);
-  color:#222;
+  color:#050303;
 }
 
 /* ===== HEADER ===== */
 header{
   background:linear-gradient(135deg,var(--brand),var(--brand-light));
-  color:#fff;
+  color:#2cae8b;
   padding:20px;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10px;
+  font-style: italic;
+  font: bold;
+  font: bolder;
+
 }
 
 header h1{margin:0;font-size:24px}
@@ -105,7 +112,7 @@ main{
 
 /* ===== CARD ===== */
 .card{
-  background:#fff;
+  background:#e24da9;
   border-radius:16px;
   padding:20px;
   margin-bottom:20px;
@@ -162,13 +169,15 @@ footer{
       <a href="./more-info/brave.html" data-vi="Nhập sản lượng chỉnh biên" data-zh="录入产量整经"></a>
       <a href="./scan.html" data-vi="Quét QR" data-zh="扫码"></a>
       <a href="./more-info/soi.html" data-vi="Tra sợi" data-zh="查原料"></a>
+      <a href="/more-info/gap.html" data-vi="Đơn hàng gấp" data-zh="急单"></a>
+  
       
     </nav>
 
     <div class="lang">
       <button id="viBtn">🇻🇳 VI</button>
       <button id="zhBtn">🇨🇳 中文</button>
-      <button class="logout" onclick="logout()">Đăng xuất</button>
+      <button class="logout" onclick="logout()" data-zh="退出登录" data-vi="Đăng xuất">Đăng xuất</button>
     </div>
   </div>
 </header>
@@ -178,7 +187,7 @@ footer{
   <div class="card">
     <h3 data-vi="🏢 Thông tin công ty" data-zh="🏢 公司信息"></h3>
     <p data-vi="Công ty SINCETECH (Việt Nam) Technology Co., Ltd."
-       data-zh="新科科技（越南）有限公司。"></p>
+       data-zh="信泰集团（越南）有限公司。"></p>
     <p data-vi="Vốn điều lệ: 5.000.000.000 VND"
        data-zh="注册资本：5,000,000,000 越南盾"></p>
     <p data-vi="Người đại diện: Ngô Xuất"
@@ -193,7 +202,7 @@ footer{
 
   <div class="card">
     <h3 data-vi="📸 Hình ảnh công ty" data-zh="📸 公司图片"></h3>
-    <img src="./assets/images/548307907_122116228592978641_4451617460419230906_n.jpg"
+    <img src="/assets/images/logo.png"
          class="company-img">
   </div>
 

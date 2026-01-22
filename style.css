@@ -1,0 +1,126 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+/* ===== APP ===== */
+.app {
+  display: flex;
+  height: 100vh;
+  background: #f4f6f8;
+}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  background: #2c3e50;
+  color: #fff;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+}
+
+.sidebar li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.sidebar li:hover {
+  background: #34495e;
+}
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  padding: 20px;
+}
+
+/* ===== HEADER ===== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+/* ===== CARDS ===== */
+.cards {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  flex: 1;
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  border-left: 6px solid #3498db;
+  font-size: 18px;
+}
+
+/* ===== TABLE ===== */
+.table-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.run {
+  color: green;
+  font-weight: bold;
+}
+
+.stop {
+  color: red;
+  font-weight: bold;
+}
+
+select.status {
+    padding: 4px;
+    font-weight: bold;
+}
+
+select.run {
+    color: green;
+}
+
+select.stop {
+    color: red;
+}
+
+input.hour {
+    width: 80px;
+    text-align: center;
+}
+input.location {
+    width: 160px;
+    padding: 4px;
+    font-size: 13px;
+}
+
+select.location {
+    width: 120px;
+    padding: 4px;
+    font-size: 13px;
+}
+
