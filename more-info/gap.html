@@ -128,6 +128,7 @@ th{
     font-weight:600;
     color:#374151;
   }
+
   tbody td:nth-child(1)::before{content:"订单";}
   tbody td:nth-child(2)::before{content:"机器";}
   tbody td:nth-child(3)::before{content:"原料";}
@@ -141,10 +142,31 @@ th{
   tbody td:nth-child(11)::before{content:"操作";}
 
 }
+
+/* ===== ROW GỌN (VẪN GIỮ NÚT) ===== */
+.compact-row td{
+  padding:4px 6px !important;   /* giảm chiều cao */
+  font-size:13px;               /* chữ nhỏ hơn chút */
+  line-height:1.2;
+}
+
+.compact-row .action-col{
+  gap:4px;
+}
+
+.compact-row .action-col button{
+  width:36px;
+  height:30px;
+  font-size:14px;
+}
+
 </style>
 </head>
 
 <body>
+  
+  <a style="color: #ef4444;" href="/more-info/done.html"> 已完成</a>
+ 
 
 <h2>📦 紧急订单 | Bảng đơn hàng gấp</h2>
 
@@ -286,24 +308,31 @@ function render(data){
   if(!data) return;
 
   Object.entries(data).forEach(([k,o])=>{
-    const tr=document.createElement("tr");
-    const diff=(Date.now()-new Date(o.date))/86400000;
 
-    if(!o.done){
-  if(o.urgent === true || o.urgent === "true"){
-    tr.classList.add("level-red");
-  }
-  else if(diff >= 5){
-    tr.classList.add("level-red");
-  }
-  else if(diff >= 2){
-    tr.classList.add("level-yellow");
-  }
-  else{
-    tr.classList.add("level-green");
-  }
+    // 🚫 ĐÃ HOÀN THÀNH → KHÔNG HIỂN THỊ Ở BẢNG NÀY
+    if(o.done === true) return;
+
+    const tr=document.createElement("tr");
+
+// 🔹 Đơn đang xử lý → hiển thị gọn
+if(!o.done){
+  tr.classList.add("compact-row");
 }
 
+    const diff=(Date.now()-new Date(o.date))/86400000;
+
+    if(o.urgent === true || o.urgent === "true"){
+      tr.classList.add("level-red");
+    }
+    else if(diff >= 5){
+      tr.classList.add("level-red");
+    }
+    else if(diff >= 2){
+      tr.classList.add("level-yellow");
+    }
+    else{
+      tr.classList.add("level-green");
+    }
 
     tr.innerHTML=`
       <td>${o.orderName}</td>
@@ -315,24 +344,13 @@ function render(data){
       <td>${o.worker}</td>
       <td>${o.position||"-"}</td>
       <td>${o.urgent === true ? "🔥 急单" : "-"}</td>
-      <td>${o.done ? "🟢 已完成" : "⏳ 进行中"}</td>
-
+      <td>⏳ 进行中</td>
 
       <td>
         <div class="action-col">
-          ${
-            o.done
-            ? `<span class="locked">🔒</span>`
-            : `
-              <button class="done-btn" title="Hoàn thành"
-                onclick="done('${k}')">✔</button>
-
-              <button class="edit" title="Sửa"
-                onclick="editRow('${k}')">✏️</button>
-            `
-          }
-          <button class="delete" title="Xoá"
-            onclick="del('${k}')">🗑️</button>
+          <button class="done-btn" onclick="done('${k}')">✔</button>
+          <button class="edit" onclick="editRow('${k}')">✏️</button>
+          <button class="delete" onclick="del('${k}')">🗑️</button>
         </div>
       </td>
     `;
@@ -340,11 +358,16 @@ function render(data){
   });
 }
 
+
 // DONE
 function done(key){
   const pos=prompt("📦 输入锭位 / Nhập vị trí con suốt");
   if(!pos) return;
-  soiRef.child(key).update({done:true,position:pos});
+  soiRef.child(key).update({
+  done:true,
+  position:pos,
+  doneAt: Date.now()
+});
 }
 
 // DELETE
@@ -398,8 +421,6 @@ function editRow(key){
 
 </body>
 </html>
-
-
 
 
 
