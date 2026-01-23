@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🟢 已完成订单</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+body{
+  font-family:Arial;
+  background:#f1f5f9;
+  padding:12px
+}
+h2{
+  text-align:center;
+  margin-bottom:10px
+}
+
+/* ===== SEARCH ===== */
+.search-box{
+  margin-bottom:12px;
+}
+.search-box input{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid #5e87c6;
+  font-size:14px;
+}
+
+/* ===== TABLE ===== */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#4dd078;
+  border-radius:12px;
+  overflow:hidden
+}
+th,td{
+  padding:10px;
+  border-bottom:1px solid #294680;
+  text-align:center;
+  font-size:14px
+}
+th{
+  background:#9d4133;
+  color:#0e0909
+}
+tbody tr:hover{
+  background:#4a8e5e
+}
+
+/* ===== MOBILE CARD ===== */
+@media(max-width:768px){
+  table{display:none}
+
+  .card{
+    background:#fff;
+    border-radius:14px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 4px 10px rgba(0,0,0,.04)
+  }
+  .row{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:6px;
+    font-size:14px
+  }
+  .label{
+    color:#6b7280;
+    font-weight:600
+  }
+  .code{
+    font-weight:700;
+    color:#a35a16
+  }
+}
+
+/* DESKTOP ONLY */
+@media(min-width:769px){
+  .mobile-only{display:none}
+}
+</style>
+</head>
+
+<body>
+
+<h2>🟢 已完成订单 | Đơn đã hoàn thành</h2>
+
+<!-- 🔍 TÌM THEO CODE ĐƠN -->
+<div class="search-box">
+  <input id="search" placeholder="🔍 Nhập mã đơn hàng (VD: PD3675F-02)">
+</div>
+
+<!-- ===== DESKTOP TABLE ===== -->
+<table>
+<thead>
+<tr>
+  <th>订单 Đơn hàng</th>
+  <th>机器 Số máy</th>
+  <th>原料 Nguyên liệu</th>
+  <th>数量 Số lượng</th>
+  <th>日期 Ngày xuống đơn</th>
+  <th>米数 Số mét</th>
+  <th>员工 Nhân viên</th>
+  <th>锭位 Vị trí</th>
+  <th>完成时间 Thời gian hoàn thành</th>
+</tr>
+</thead>
+<tbody id="doneBody"></tbody>
+</table>
+
+<!-- ===== MOBILE ===== -->
+<div id="mobileList" class="mobile-only"></div>
+
+<script>
+// ================= FIREBASE =================
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+
+const ref = firebase.database().ref("soi");
+const doneBody = document.getElementById("doneBody");
+const mobileList = document.getElementById("mobileList");
+const search = document.getElementById("search");
+
+let cache = [];
+
+// ================= LOAD =================
+ref.on("value", snap=>{
+  const data = snap.val();
+  if(!data) return;
+
+  cache = Object.entries(data)
+    .filter(([_,o]) => o.done === true)
+    .map(([key,o]) => ({key,...o}));
+
+  render();
+});
+
+// ================= RENDER =================
+function render(){
+  const keywords = search.value
+    .toLowerCase()
+    .split(" ")
+    .filter(k => k.trim() !== "");
+
+  doneBody.innerHTML="";
+  mobileList.innerHTML="";
+
+  cache
+    .filter(o => {
+      const text = `
+        ${o.orderName || ""}
+        ${o.machine || ""}
+        ${o.position || ""}
+      `.toLowerCase();
+
+      // 🔍 TẤT CẢ keyword đều phải khớp
+      return keywords.every(k => text.includes(k));
+    })
+    .sort((a,b)=>(b.doneAt||0)-(a.doneAt||0))
+    .forEach(o=>{
+
+      // auto fix đơn cũ
+      if(!o.doneAt){
+        ref.child(o.key).update({ doneAt: Date.now() });
+      }
+
+      const doneTime = o.doneAt
+        ? new Date(o.doneAt).toLocaleString("vi-VN")
+        : "—";
+
+      /* ===== DESKTOP ===== */
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
+        <td><b>${o.orderName}</b></td>
+        <td>${o.machine}</td>
+        <td>${o.material}</td>
+        <td>${o.quantity}</td>
+        <td>${o.date}</td>
+        <td>${o.meters} m</td>
+        <td>${o.worker}</td>
+        <td><b>${o.position||"-"}</b></td>
+        <td>${doneTime}</td>
+      `;
+      doneBody.appendChild(tr);
+
+      /* ===== MOBILE ===== */
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`
+        <div class="row"><span class="label">订单</span><span class="code">${o.orderName}</span></div>
+        <div class="row"><span class="label">机器</span><span>${o.machine}</span></div>
+        <div class="row"><span class="label">锭位</span><span class="pos">${o.position||"-"}</span></div>
+        <div class="row"><span class="label">完成</span><span>${doneTime}</span></div>
+      `;
+      mobileList.appendChild(card);
+    });
+}
+
+
+search.oninput = render;
+</script>
+
+</body>
+</html>
