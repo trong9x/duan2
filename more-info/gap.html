@@ -136,7 +136,10 @@ th{
   tbody td:nth-child(6)::before{content:"米数";}
   tbody td:nth-child(7)::before{content:"员工";}
   tbody td:nth-child(8)::before{content:"锭位";}
-  tbody td:nth-child(9)::before{content:"状态";}
+  tbody td:nth-child(9)::before{content:"优先";}
+  tbody td:nth-child(10)::before{content:"状态";}
+  tbody td:nth-child(11)::before{content:"操作";}
+
 }
 </style>
 </head>
@@ -148,11 +151,20 @@ th{
 <table>
 <thead>
 <tr>
-  <th>订单</th><th>机器</th><th>原料</th><th>数量</th>
-  <th>日期</th><th>米数</th><th>员工</th>
-  <th>锭位</th><th>状态</th><th>操作</th>
+  <th>订单</th>
+  <th>机器</th>
+  <th>原料</th>
+  <th>数量</th>
+  <th>日期</th>
+  <th>米数</th>
+  <th>员工</th>
+  <th>锭位</th>
+  <th>优先</th>
+  <th>状态</th>
+  <th>操作</th>
 </tr>
 </thead>
+
 
 <tbody>
 <tr>
@@ -163,15 +175,22 @@ th{
   <td><input id="date" type="date"></td>
   <td><input id="meters" type="number"></td>
   <td>
-    <select id="worker">
-      <option value="">-- Chọn NV --</option>
+    <select id="worker"></select>
+  </td>
+
+  <!-- ✅ CỘT GẤP -->
+  <td>
+    <select id="urgent">
+      <option value="false">不急</option>
+      <option value="true">🔥 急单</option>
     </select>
   </td>
-  <td><i>Hoàn thành mới nhập</i></td>
+
   <td>⏳</td>
   <td><button id="addBtn" class="add-btn">添加</button></td>
 </tr>
 </tbody>
+
 
 <tbody id="tableBody"></tbody>
 </table>
@@ -221,14 +240,16 @@ addBtn.onclick=()=>{
   }
 
   const data={
-    orderName:orderName.value,
-    machine:machine.value,
-    material:material.value,
-    quantity:quantity.value,
-    date:date.value,
-    meters:meters.value,
-    worker:worker.value
-  };
+  orderName:orderName.value,
+  machine:machine.value,
+  material:material.value,
+  quantity:quantity.value,
+  date:date.value,
+  meters:meters.value,
+  worker:worker.value,
+  urgent: urgent.value === "true"
+};
+
 
   // 🔴 NẾU ĐANG SỬA → UPDATE
   if(editKey){
@@ -269,11 +290,20 @@ function render(data){
     const diff=(Date.now()-new Date(o.date))/86400000;
 
     if(!o.done){
-      if(diff>=5) tr.classList.add("level-red");
-      else if(diff>=2) tr.classList.add("level-yellow");
-      else tr.classList.add("level-green");
-    }
-    if(o.done) tr.classList.add("done");
+  if(o.urgent === true || o.urgent === "true"){
+    tr.classList.add("level-red");
+  }
+  else if(diff >= 5){
+    tr.classList.add("level-red");
+  }
+  else if(diff >= 2){
+    tr.classList.add("level-yellow");
+  }
+  else{
+    tr.classList.add("level-green");
+  }
+}
+
 
     tr.innerHTML=`
       <td>${o.orderName}</td>
@@ -284,7 +314,9 @@ function render(data){
       <td>${o.meters} m</td>
       <td>${o.worker}</td>
       <td>${o.position||"-"}</td>
-      <td>${o.done?"🟢 已完成":"⚠️ 紧急 / Gấp"}</td>
+      <td>${o.urgent === true ? "🔥 急单" : "-"}</td>
+      <td>${o.done ? "🟢 已完成" : "⏳ 进行中"}</td>
+
 
       <td>
         <div class="action-col">
@@ -352,6 +384,10 @@ function editRow(key){
     date.value      = o.date;
     meters.value    = o.meters;
     worker.value    = o.worker;
+    urgent.value = (o.urgent === true || o.urgent === "true")
+      ? "true"
+      : "false";
+
 
     addBtn.textContent = "💾 保存 / Lưu";
     addBtn.className   = "save-btn";
@@ -362,6 +398,11 @@ function editRow(key){
 
 </body>
 </html>
+
+
+
+
+
 
 
 
