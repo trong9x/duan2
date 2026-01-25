@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>BẢNG THỐNG KÊ CON SUỐT</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+:root{
+  --blue:#0b5ed7;
+  --red:#b62e1a;
+  --dark:#0f172a;
+}
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  padding:6px;
+  font-family:"Segoe UI","Microsoft YaHei",Arial,sans-serif;
+  background:#e5e7eb;
+}
+
+/* TOOLBAR */
+.toolbar{
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  margin-bottom:6px;
+}
+.toolbar button{
+  background:var(--blue);
+  color:#fff;
+  border:none;
+  border-radius:8px;
+  padding:8px 12px;
+}
+.toolbar input{
+  flex:1;
+  min-width:180px;
+  padding:8px;
+  border-radius:8px;
+  border:1px solid #ccc;
+}
+#status{font-size:12px}
+
+/* QUICK ADD */
+#quickAdd{
+  background:#fff;
+  border-radius:10px;
+  padding:6px;
+  margin-bottom:6px;
+  overflow-x:auto;
+}
+#quickAdd input{
+  width:120px;
+  padding:6px;
+  font-size:12px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+/* TABLE */
+table{
+  width:100%;
+  border-collapse:collapse;
+  background:#fff;
+  border-radius:10px;
+  overflow:hidden;
+}
+thead th{
+  background:var(--dark);
+  color:#fff;
+  font-size:12px;
+  border:1px solid #334155;
+  position:sticky;
+  top:0;
+}
+thead tr:first-child th{background:#991b1b;font-size:16px}
+thead tr:nth-child(2) th{background:#7f1d1d;font-size:11px}
+
+th,td{
+  border:1px solid #d1d5db;
+  padding:6px 8px;
+  font-size:13px;
+  text-align:center;
+  white-space:nowrap;
+}
+tbody tr:nth-child(even){background:#f9fafb}
+tbody tr:hover{background:#e0f2fe}
+
+td[contenteditable]{background:#fff7ed}
+
+.btn{
+  background:var(--red);
+  color:#fff;
+  padding:6px 10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.delete{cursor:pointer;font-size:18px;color:#b91c1c}
+
+@media(max-width:768px){
+  table{display:block;overflow-x:auto}
+}
+/* MOBILE CARD */
+#mobileList{display:none}
+
+@media(max-width:768px){
+  table{display:none}
+
+  #mobileList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .card{
+    background:#fff;
+    border-radius:14px;
+    padding:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,.08);
+  }
+
+  .card h3{
+    margin:0 0 6px;
+    font-size:15px;
+    color:#991b1b;
+  }
+
+  .card .row{
+    font-size:13px;
+    margin-bottom:4px;
+    display:flex;
+    justify-content:space-between;
+  }
+
+  .card .row span{
+    color:#374151;
+  }
+
+  .card .btn{
+    margin-top:8px;
+    width:100%;
+    text-align:center;
+    font-size:14px;
+    padding:10px;
+    border-radius:12px;
+  }
+
+  .card.locked{
+    opacity:.6;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="toolbar">
+  <button onclick="addRow()">➕ THÊM DÒNG</button>
+  <input id="search" list="suggestions" placeholder="🔍 Nhập số / sợi (vd: 150)">
+  <datalist id="suggestions"></datalist>
+  <span id="status">⏳</span>
+</div>
+
+<!-- DÒNG NHẬP NHANH -->
+<div id="quickAdd">
+  <table>
+    <!-- MOBILE CARD LIST -->
+<div id="mobileList"></div>
+
+    <tr>
+      <td><input data-f="soMay" placeholder="Số máy"></td>
+      <td><input data-f="donHang" placeholder="Đơn hàng"></td>
+      <td><input data-f="quyCach" placeholder="Quy cách sợi"></td>
+      <td><input data-f="may" placeholder="Máy"></td>
+      <td><input data-f="soConSuot" placeholder="Con suốt"></td>
+      <td><input data-f="khoTrong" placeholder="Khổ trong"></td>
+      <td><input data-f="khoNgoai" placeholder="Khổ ngoài"></td>
+      <td><input data-f="soMet" placeholder="Số mét"></td>
+      <td><input data-f="nguyenDai" placeholder="Nguyên dài"></td>
+      <td><input data-f="nguyenNgoai" placeholder="Ngoại quan"></td>
+      <td><input data-f="soLo" placeholder="Số lô"></td>
+      <td><input data-f="viTri" placeholder="Vị trí"></td>
+      <td><input data-f="ngay" placeholder="Ngày"></td>
+    </tr>
+  </table>
+</div>
+
+<table>
+<thead>
+<tr><th colspan="16">新盘头统计表 — BẢNG THỐNG KÊ CON SUỐT MỚI</th></tr>
+<tr><th colspan="16">欢迎 😁</th></tr>
+<tr>
+  <th rowspan="2">SỐ MÁY</th>
+  <th rowspan="2">ĐƠN HÀNG</th>
+  <th rowspan="2">QUY CÁCH SỢI</th>
+  <th rowspan="2">MÁY</th>
+  <th rowspan="2">SỐ CON SUỐT</th>
+  <th colspan="2">KHỔ SỢI</th>
+  <th rowspan="2">SỐ MÉT</th>
+  <th colspan="2">NGUYÊN SỢI</th>
+  <th rowspan="2">SỐ LÔ</th>
+  <th rowspan="2">VỊ TRÍ</th>
+  <th rowspan="2">NGÀY</th>
+  <th rowspan="2">LÊN MÁY</th>
+  <th rowspan="2">🔒</th>
+  <th rowspan="2">❌</th>
+</tr>
+<tr>
+  <th>TRONG</th><th>NGOÀI</th><th>DÀI</th><th>NGOẠI QUAN</th>
+</tr>
+</thead>
+<tbody id="tbody"></tbody>
+</table>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW55b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const ref=firebase.database().ref("consuot");
+const statusEl=document.getElementById("status");
+
+firebase.database().ref(".info/connected").on("value",s=>{
+  statusEl.innerText=s.val()?"🟢 Đã kết nối":"🔴 Mất kết nối";
+});
+
+const tbody=document.getElementById("tbody");
+const search=document.getElementById("search");
+const datalist=document.getElementById("suggestions");
+
+/* ADD FROM QUICK ROW */
+function addRow(){
+  const data={};
+  document.querySelectorAll("#quickAdd input").forEach(i=>{
+    data[i.dataset.f]=i.value.trim();
+  });
+  if(Object.values(data).every(v=>!v)) return alert("⚠️ Chưa nhập dữ liệu");
+  ref.push(data);
+  document.querySelectorAll("#quickAdd input").forEach(i=>i.value="");
+}
+
+/* CREATE ROW */
+function createRow(d){
+  const tr=document.createElement("tr");
+  tr.dataset.key=d._key;
+
+  const f=["soMay","donHang","quyCach","may","soConSuot","khoTrong","khoNgoai","soMet","nguyenDai","nguyenNgoai","soLo","viTri","ngay"];
+  f.forEach(k=>{
+  const td=document.createElement("td");
+  td.contentEditable = !d.locked; // 🔒 chỉ khóa ô
+  td.innerText=d[k]||"";
+  td.oninput=()=>ref.child(tr.dataset.key).update({[k]:td.innerText});
+  tr.appendChild(td);
+});
+
+
+  const tdBtn = document.createElement("td");
+const btn = document.createElement("div");
+btn.className = "btn";
+
+if(d.mayLen){
+  btn.innerText = `${d.mayLen} ⏱ ${d.timeLen}`;
+}else{
+  btn.innerText = "LÊN MÁY";
+}
+
+btn.onclick = () => lenMay(tr);
+tdBtn.appendChild(btn);
+tr.appendChild(tdBtn);
+
+
+
+  const tdLock=document.createElement("td");
+  tr.appendChild(tdLock);
+
+  const tdDel=document.createElement("td");
+  tdDel.innerText="🗑️";
+  tdDel.className="delete";
+  tdDel.onclick=()=>ref.child(tr.dataset.key).remove();
+  tr.appendChild(tdDel);
+  if(d.locked){
+  tr.classList.add("locked");
+}
+
+
+  tbody.appendChild(tr);
+}
+
+
+/* LOAD (DESKTOP + MOBILE) */
+const mobileList = document.getElementById("mobileList");
+
+ref.on("value", s => {
+  tbody.innerHTML = "";
+  mobileList.innerHTML = "";
+
+  s.forEach(c => {
+    const d = {...c.val(), _key: c.key};
+    createRow(d);     // desktop table
+    createCard(d);    // mobile card
+  });
+});
+
+/* SEARCH – CHỈ THEO SỢI */
+const YARN_COL=2;
+search.addEventListener("input",()=>{
+  const kw=search.value.toLowerCase().trim();
+  datalist.innerHTML="";
+  if(!kw){[...tbody.rows].forEach(r=>r.style.display="");return;}
+  const set=new Set();
+  [...tbody.rows].forEach(tr=>{
+    const t=tr.cells[YARN_COL].innerText;
+    if(t.toLowerCase().includes(kw)) set.add(t);
+  });
+  [...set].slice(0,20).forEach(v=>{
+    const o=document.createElement("option");o.value=v;datalist.appendChild(o);
+  });
+  [...tbody.rows].forEach(tr=>{
+    tr.style.display=tr.cells[YARN_COL].innerText.toLowerCase().includes(kw)?"":"none";
+  });
+});
+function lenMay(tr){
+  const key = tr.dataset.key;
+
+  // NẾU ĐÃ LÊN MÁY → PHỤC HỒI
+  if(tr.classList.contains("locked")){
+    if(!confirm("🔓 Phục hồi dòng này?")) return;
+
+    ref.child(key).update({
+      mayLen: null,
+      timeLen: null,
+      locked: false
+    });
+    return;
+  }
+
+  // CHƯA LÊN MÁY → TIẾN HÀNH LÊN
+  const viTri = tr.cells[11].innerText.trim();
+  if(!viTri){
+    alert("⚠️ Chưa nhập VỊ TRÍ");
+    return;
+  }
+
+  const may = prompt("Nhập MÁY lên:");
+  if(!may) return;
+
+  ref.child(key).update({
+    mayLen: may,
+    timeLen: new Date().toLocaleString("vi-VN"),
+    locked: true
+  });
+}
+function createCard(d){
+  const card=document.createElement("div");
+  card.className="card";
+  if(d.locked) card.classList.add("locked");
+
+  card.innerHTML=`
+    <h3>${d.quyCach||"(Chưa có sợi)"}</h3>
+    <div class="row"><span>Đơn hàng</span><b>${d.donHang||""}</b></div>
+    <div class="row"><span>Máy</span><b>${d.may||""}</b></div>
+    <div class="row"><span>Vị trí</span><b>${d.viTri||""}</b></div>
+    <div class="row"><span>Số mét</span><b>${d.soMet||""}</b></div>
+    <div class="row"><span>Ngày</span><b>${d.ngay||""}</b></div>
+  `;
+
+  const btn=document.createElement("div");
+  btn.className="btn";
+  btn.innerText=d.mayLen?`${d.mayLen} ⏱ ${d.timeLen}`:"LÊN MÁY";
+  btn.onclick=()=>lenMay({dataset:{key:d._key},classList:card.classList,cells:[]});
+
+  card.appendChild(btn);
+  mobileList.appendChild(card);
+}
+
+
+
+</script>
+
+</body>
+</html>
