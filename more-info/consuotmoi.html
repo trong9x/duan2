@@ -103,8 +103,32 @@ td[contenteditable]{background:#fff7ed}
 .delete{cursor:pointer;font-size:18px;color:#b91c1c}
 
 @media(max-width:768px){
-  table{display:block;overflow-x:auto}
+  table{
+    display:none !important; /* ❗ mobile không render table */
+  }
+
+  #mobileSort{
+    display:flex;
+    gap:8px;
+    position:sticky;
+    top:6px;
+    z-index:20;
+  }
+
+  #mobileSort select{
+    flex:1;
+    padding:10px;
+    font-size:15px;
+    border-radius:10px;
+  }
+
+  #mobileList{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
 }
+
 /* MOBILE CARD */
 #mobileList{display:none}
 
@@ -166,11 +190,7 @@ td[contenteditable]{background:#fff7ed}
   <datalist id="suggestions"></datalist>
   <span id="status">⏳</span>
 </div>
-
-<!-- DÒNG NHẬP NHANH -->
-<div id="quickAdd">
-  <table>
-    <!-- MOBILE CARD LIST -->
+ <!-- MOBILE CARD LIST -->
 <div id="mobileList"></div>
 <!-- MOBILE SORT BAR -->
 <div id="mobileSort" style="
@@ -194,6 +214,10 @@ td[contenteditable]{background:#fff7ed}
   </select>
 </div>
 
+<!-- DÒNG NHẬP NHANH -->
+<div id="quickAdd">
+  <table>
+   
 
     <tr>
       <td><input data-f="soMay" placeholder="Số máy"></td>
