@@ -270,7 +270,8 @@ if(d.mayLen){
   btn.innerText = "LÊN MÁY";
 }
 
-btn.onclick = () => lenMay(tr);
+btn.onclick = () => lenMayByKey(tr.dataset.key, d);
+
 tdBtn.appendChild(btn);
 tr.appendChild(tdBtn);
 
@@ -309,40 +310,52 @@ ref.on("value", s => {
 
 /* SEARCH – CHỈ THEO SỢI */
 const YARN_COL=2;
+/* SEARCH – DESKTOP + MOBILE */
 search.addEventListener("input",()=>{
-  const kw=search.value.toLowerCase().trim();
-  datalist.innerHTML="";
-  if(!kw){[...tbody.rows].forEach(r=>r.style.display="");return;}
+  const kw = search.value.toLowerCase().trim();
+  datalist.innerHTML = "";
+
+  // desktop table
+  [...tbody.rows].forEach(tr=>{
+    const yarn = tr.cells[2]?.innerText.toLowerCase() || "";
+    tr.style.display = !kw || yarn.includes(kw) ? "" : "none";
+  });
+
+  // mobile cards
+  [...mobileList.children].forEach(card=>{
+    const yarn = card.querySelector("h3")?.innerText.toLowerCase() || "";
+    card.style.display = !kw || yarn.includes(kw) ? "" : "none";
+  });
+
+  if(!kw) return;
+
   const set=new Set();
   [...tbody.rows].forEach(tr=>{
-    const t=tr.cells[YARN_COL].innerText;
-    if(t.toLowerCase().includes(kw)) set.add(t);
+    const t=tr.cells[2]?.innerText;
+    if(t && t.toLowerCase().includes(kw)) set.add(t);
   });
+
   [...set].slice(0,20).forEach(v=>{
-    const o=document.createElement("option");o.value=v;datalist.appendChild(o);
-  });
-  [...tbody.rows].forEach(tr=>{
-    tr.style.display=tr.cells[YARN_COL].innerText.toLowerCase().includes(kw)?"":"none";
+    const o=document.createElement("option");
+    o.value=v;
+    datalist.appendChild(o);
   });
 });
-function lenMay(tr){
-  const key = tr.dataset.key;
 
-  // NẾU ĐÃ LÊN MÁY → PHỤC HỒI
-  if(tr.classList.contains("locked")){
+/* LÊN MÁY – DÙNG CHUNG DESKTOP + MOBILE */
+/* LÊN MÁY – DÙNG CHUNG DESKTOP + MOBILE */
+function lenMayByKey(key, data){
+  if(data.locked){
     if(!confirm("🔓 Phục hồi dòng này?")) return;
-
     ref.child(key).update({
-      mayLen: null,
-      timeLen: null,
-      locked: false
+      mayLen:null,
+      timeLen:null,
+      locked:false
     });
     return;
   }
 
-  // CHƯA LÊN MÁY → TIẾN HÀNH LÊN
-  const viTri = tr.cells[11].innerText.trim();
-  if(!viTri){
+  if(!data.viTri){
     alert("⚠️ Chưa nhập VỊ TRÍ");
     return;
   }
@@ -356,6 +369,11 @@ function lenMay(tr){
     locked: true
   });
 }
+
+
+
+  
+
 function createCard(d){
   const card=document.createElement("div");
   card.className="card";
@@ -373,7 +391,8 @@ function createCard(d){
   const btn=document.createElement("div");
   btn.className="btn";
   btn.innerText=d.mayLen?`${d.mayLen} ⏱ ${d.timeLen}`:"LÊN MÁY";
-  btn.onclick=()=>lenMay({dataset:{key:d._key},classList:card.classList,cells:[]});
+  btn.onclick = () => lenMayByKey(d._key, d);
+
 
   card.appendChild(btn);
   mobileList.appendChild(card);
@@ -385,3 +404,4 @@ function createCard(d){
 
 </body>
 </html>
+
