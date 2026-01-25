@@ -172,6 +172,28 @@ td[contenteditable]{background:#fff7ed}
   <table>
     <!-- MOBILE CARD LIST -->
 <div id="mobileList"></div>
+<!-- MOBILE SORT BAR -->
+<div id="mobileSort" style="
+  display:none;
+  background:#fff;
+  padding:8px;
+  border-radius:10px;
+  margin-bottom:8px;
+  gap:6px;
+">
+  <select id="mobileSortField">
+    <option value="quyCach">Quy cách sợi</option>
+    <option value="soMet">Số mét</option>
+    <option value="viTri">Vị trí</option>
+    <option value="ngay">Ngày</option>
+  </select>
+
+  <select id="mobileSortDir">
+    <option value="asc">⬆ Tăng dần</option>
+    <option value="desc">⬇ Giảm dần</option>
+  </select>
+</div>
+
 
     <tr>
       <td><input data-f="soMay" placeholder="Số máy"></td>
@@ -196,21 +218,22 @@ td[contenteditable]{background:#fff7ed}
 <tr><th colspan="16">新盘头统计表 — BẢNG THỐNG KÊ CON SUỐT MỚI</th></tr>
 <tr><th colspan="16">欢迎 😁</th></tr>
 <tr>
-  <th rowspan="2">SỐ MÁY</th>
-  <th rowspan="2">ĐƠN HÀNG</th>
-  <th rowspan="2">QUY CÁCH SỢI</th>
-  <th rowspan="2">MÁY</th>
-  <th rowspan="2">SỐ CON SUỐT</th>
+  <th rowspan="2" data-field="soMay">SỐ MÁY</th>
+  <th rowspan="2" data-field="donHang">ĐƠN HÀNG</th>
+  <th rowspan="2" data-field="quyCach">QUY CÁCH SỢI</th>
+  <th rowspan="2" data-field="may">MÁY</th>
+  <th rowspan="2" data-field="soConSuot">SỐ CON SUỐT</th>
   <th colspan="2">KHỔ SỢI</th>
-  <th rowspan="2">SỐ MÉT</th>
+  <th rowspan="2" data-field="soMet">SỐ MÉT</th>
   <th colspan="2">NGUYÊN SỢI</th>
-  <th rowspan="2">SỐ LÔ</th>
-  <th rowspan="2">VỊ TRÍ</th>
-  <th rowspan="2">NGÀY</th>
+  <th rowspan="2" data-field="soLo">SỐ LÔ</th>
+  <th rowspan="2" data-field="viTri">VỊ TRÍ</th>
+  <th rowspan="2" data-field="ngay">NGÀY</th>
   <th rowspan="2">LÊN MÁY</th>
   <th rowspan="2">🔒</th>
   <th rowspan="2">❌</th>
 </tr>
+
 <tr>
   <th>TRONG</th><th>NGOÀI</th><th>DÀI</th><th>NGOẠI QUAN</th>
 </tr>
@@ -397,6 +420,116 @@ function createCard(d){
   card.appendChild(btn);
   mobileList.appendChild(card);
 }
+
+let sortState = {}; // lưu trạng thái ↑ ↓
+
+document.querySelectorAll("thead th[data-field]").forEach(th=>{
+  th.style.cursor = "pointer";
+  th.addEventListener("click", ()=>{
+    const field = th.dataset.field;
+    const dir = sortState[field] === "asc" ? "desc" : "asc";
+    sortState = {}; // reset cột khác
+    sortState[field] = dir;
+    sortTable(field, dir);
+    updateSortIcon(th, dir);
+  });
+});
+
+function sortTable(field, dir){
+  const rows = [...tbody.rows];
+
+  rows.sort((a,b)=>{
+    const get = (tr)=>{
+      const map = {
+        soMay:0, donHang:1, quyCach:2, may:3,
+        soConSuot:4, soMet:7, soLo:10, viTri:11, ngay:12
+      };
+      return tr.cells[map[field]]?.innerText.trim() || "";
+    };
+
+    let A = get(a), B = get(b);
+
+    // số
+    if(!isNaN(A) && !isNaN(B)){
+      A = Number(A); B = Number(B);
+    }
+    // ngày
+    else if(/\d{4}/.test(A) && /\d{4}/.test(B)){
+      A = new Date(A); B = new Date(B);
+    }
+    // chữ
+    else{
+      A = A.toLowerCase();
+      B = B.toLowerCase();
+    }
+
+    return dir==="asc" ? A>B?1:-1 : A<B?1:-1;
+  });
+
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+function updateSortIcon(th, dir){
+  document.querySelectorAll("thead th").forEach(t=>{
+    t.innerHTML = t.innerText.replace(" ↑","").replace(" ↓","");
+  });
+  th.innerHTML += dir==="asc" ? " ↑" : " ↓";
+}
+function isMobile(){
+  return window.innerWidth <= 768;
+}
+
+const mobileSortBar = document.getElementById("mobileSort");
+
+function toggleMobileSort(){
+  mobileSortBar.style.display = isMobile() ? "flex" : "none";
+}
+window.addEventListener("resize", toggleMobileSort);
+toggleMobileSort();
+const mobileSortField = document.getElementById("mobileSortField");
+const mobileSortDir   = document.getElementById("mobileSortDir");
+
+mobileSortField.onchange = mobileSortDir.onchange = sortMobileCards;
+
+function sortMobileCards(){
+  const field = mobileSortField.value;
+  const dir   = mobileSortDir.value;
+
+  const cards = [...mobileList.children];
+
+  cards.sort((a,b)=>{
+    const getVal = (card)=>{
+      if(field==="quyCach"){
+        return card.querySelector("h3")?.innerText || "";
+      }
+      const map={
+        soMet:"Số mét",
+        viTri:"Vị trí",
+        ngay:"Ngày"
+      };
+      const row=[...card.querySelectorAll(".row")]
+        .find(r=>r.innerText.includes(map[field]));
+      return row?.querySelector("b")?.innerText || "";
+    };
+
+    let A=getVal(a), B=getVal(b);
+
+    if(!isNaN(A) && !isNaN(B)){
+      A=Number(A); B=Number(B);
+    }else if(/\d{4}/.test(A) && /\d{4}/.test(B)){
+      A=new Date(A); B=new Date(B);
+    }else{
+      A=A.toLowerCase();
+      B=B.toLowerCase();
+    }
+
+    return dir==="asc" ? A>B?1:-1 : A<B?1:-1;
+  });
+
+  cards.forEach(c=>mobileList.appendChild(c));
+}
+
+
 
 
 
