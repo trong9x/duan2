@@ -9,29 +9,39 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 
 <style>
+/* ===== GLOBAL ===== */
 body{
-  font-family:Arial;
-  background:#f1f5f9;
-  padding:12px
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial;
+  background:#eef2f7;
 }
-h2{
+.app{
+  max-width:420px;
+  margin:0 auto;
+  padding:12px;
+}
+
+/* ===== HEADER ===== */
+.header{
   text-align:center;
-  margin-bottom:10px
+  margin-bottom:14px;
+}
+.header h2{
+  margin:8px 0 12px;
+  font-size:20px;
 }
 
 /* ===== SEARCH ===== */
-.search-box{
-  margin-bottom:12px;
-}
 .search-box input{
   width:100%;
-  padding:10px;
-  border-radius:10px;
-  border:1px solid #5e87c6;
-  font-size:14px;
+  padding:12px 14px;
+  border-radius:14px;
+  border:1.5px solid #93c5fd;
+  font-size:15px;
+  outline:none;
 }
 
-/* ===== TABLE ===== */
+/* ===== DESKTOP TABLE ===== */
 table{
   width:100%;
   border-collapse:collapse;
@@ -47,36 +57,39 @@ th,td{
 }
 th{
   background:#9d4133;
-  color:#0e0909
-}
-tbody tr:hover{
-  background:#4a8e5e
+  color:#fff
 }
 
-/* ===== MOBILE CARD ===== */
+/* ===== MOBILE ===== */
 @media(max-width:768px){
   table{display:none}
 
   .card{
     background:#fff;
-    border-radius:14px;
-    padding:12px;
-    margin-bottom:12px;
-    box-shadow:0 4px 10px rgba(0,0,0,.04)
+    border-radius:16px;
+    padding:14px;
+    margin-bottom:14px;
+    box-shadow:0 6px 16px rgba(0,0,0,.06)
   }
   .row{
     display:flex;
     justify-content:space-between;
-    margin-bottom:6px;
-    font-size:14px
+    align-items:center;
+    margin-bottom:8px;
+    font-size:15px
   }
   .label{
-    color:#6b7280;
+    color:#9ca3af;
+    font-weight:600
+  }
+  .value{
+    color:#111827;
     font-weight:600
   }
   .code{
-    font-weight:700;
-    color:#a35a16
+    font-weight:800;
+    color:#b45309;
+    font-size:16px
   }
 }
 
@@ -89,33 +102,37 @@ tbody tr:hover{
 
 <body>
 
-<h2>🟢 已完成订单 | Đơn đã hoàn thành</h2>
+<div class="app">
 
-<!-- 🔍 TÌM THEO CODE ĐƠN -->
-<div class="search-box">
-  <input id="search" placeholder="🔍 Nhập mã đơn hàng (VD: PD3675F-02)">
+  <div class="header">
+    <h2>🟢 已完成订单 | Đơn đã hoàn thành</h2>
+    <div class="search-box">
+      <input id="search" placeholder="🔍 Nhập mã đơn hàng (VD: PD3675F-02)">
+    </div>
+  </div>
+
+  <!-- ===== DESKTOP TABLE ===== -->
+  <table>
+    <thead>
+      <tr>
+        <th>订单</th>
+        <th>机器</th>
+        <th>原料</th>
+        <th>数量</th>
+        <th>日期</th>
+        <th>米数</th>
+        <th>员工</th>
+        <th>锭位</th>
+        <th>完成时间</th>
+      </tr>
+    </thead>
+    <tbody id="doneBody"></tbody>
+  </table>
+
+  <!-- ===== MOBILE ===== -->
+  <div id="mobileList" class="mobile-only"></div>
+
 </div>
-
-<!-- ===== DESKTOP TABLE ===== -->
-<table>
-<thead>
-<tr>
-  <th>订单 Đơn hàng</th>
-  <th>机器 Số máy</th>
-  <th>原料 Nguyên liệu</th>
-  <th>数量 Số lượng</th>
-  <th>日期 Ngày xuống đơn</th>
-  <th>米数 Số mét</th>
-  <th>员工 Nhân viên</th>
-  <th>锭位 Vị trí</th>
-  <th>完成时间 Thời gian hoàn thành</th>
-</tr>
-</thead>
-<tbody id="doneBody"></tbody>
-</table>
-
-<!-- ===== MOBILE ===== -->
-<div id="mobileList" class="mobile-only"></div>
 
 <script>
 // ================= FIREBASE =================
@@ -154,20 +171,13 @@ function render(){
   mobileList.innerHTML="";
 
   cache
-    .filter(o => {
-      const text = `
-        ${o.orderName || ""}
-        ${o.machine || ""}
-        ${o.position || ""}
-      `.toLowerCase();
-
-      // 🔍 TẤT CẢ keyword đều phải khớp
-      return keywords.every(k => text.includes(k));
+    .filter(o=>{
+      const text = `${o.orderName||""} ${o.machine||""} ${o.position||""}`.toLowerCase();
+      return keywords.every(k=>text.includes(k));
     })
     .sort((a,b)=>(b.doneAt||0)-(a.doneAt||0))
     .forEach(o=>{
 
-      // auto fix đơn cũ
       if(!o.doneAt){
         ref.child(o.key).update({ doneAt: Date.now() });
       }
@@ -176,7 +186,7 @@ function render(){
         ? new Date(o.doneAt).toLocaleString("vi-VN")
         : "—";
 
-      /* ===== DESKTOP ===== */
+      // DESKTOP
       const tr=document.createElement("tr");
       tr.innerHTML=`
         <td><b>${o.orderName}</b></td>
@@ -191,22 +201,34 @@ function render(){
       `;
       doneBody.appendChild(tr);
 
-      /* ===== MOBILE ===== */
+      // MOBILE
       const card=document.createElement("div");
       card.className="card";
       card.innerHTML=`
-        <div class="row"><span class="label">订单</span><span class="code">${o.orderName}</span></div>
-        <div class="row"><span class="label">机器</span><span>${o.machine}</span></div>
-        <div class="row"><span class="label">锭位</span><span class="pos">${o.position||"-"}</span></div>
-        <div class="row"><span class="label">完成</span><span>${doneTime}</span></div>
+        <div class="row">
+          <span class="label">订单</span>
+          <span class="code">${o.orderName}</span>
+        </div>
+        <div class="row">
+          <span class="label">机器</span>
+          <span class="value">${o.machine}</span>
+        </div>
+        <div class="row">
+          <span class="label">锭位</span>
+          <span class="value">${o.position||"-"}</span>
+        </div>
+        <div class="row">
+          <span class="label">完成</span>
+          <span class="value">${doneTime}</span>
+        </div>
       `;
       mobileList.appendChild(card);
     });
 }
-
 
 search.oninput = render;
 </script>
 
 </body>
 </html>
+
