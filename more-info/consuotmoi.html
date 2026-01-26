@@ -128,11 +128,22 @@ td[contenteditable]{background:#fff7ed}
     gap:12px;
   }
 }
+/* DESKTOP */
+#mobileList{
+  display:none;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  #mobileList{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+  }
+}
 
 
 
-/* MOBILE CARD */
-#mobileList{display:none}
 
 @media(max-width:768px){
   #quickAdd table{
@@ -602,4 +613,5 @@ function autoFillQuyCachFromSoLo(soLo){
 
 </body>
 </html>
+
 
