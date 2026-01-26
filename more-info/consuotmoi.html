@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
-<title>BẢNG THỐNG KÊ CON SUỐT</title>
+<title>BẢNG THỐNG KÊ CON SUỐT MỚI</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
@@ -103,9 +103,11 @@ td[contenteditable]{background:#fff7ed}
 .delete{cursor:pointer;font-size:18px;color:#b91c1c}
 
 @media(max-width:768px){
-  table{
-    display:none !important; /* ❗ mobile không render table */
+  table.data-table{
+    display:none !important; /* chỉ ẩn bảng dữ liệu */
   }
+}
+
 
   #mobileSort{
     display:flex;
@@ -127,7 +129,7 @@ td[contenteditable]{background:#fff7ed}
     flex-direction:column;
     gap:12px;
   }
-}
+
 
 /* MOBILE CARD */
 #mobileList{display:none}
@@ -178,6 +180,29 @@ td[contenteditable]{background:#fff7ed}
     opacity:.6;
   }
 }
+@media(max-width:768px){
+  #quickAdd table{
+    display:block;
+  }
+
+  #quickAdd tr{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+
+  #quickAdd td{
+    border:none;
+    padding:0;
+  }
+
+  #quickAdd input{
+    width:100%;
+    font-size:14px;
+    padding:10px;
+  }
+}
+
 
 </style>
 </head>
@@ -230,14 +255,17 @@ td[contenteditable]{background:#fff7ed}
       <td><input data-f="soMet" placeholder="Số mét"></td>
       <td><input data-f="nguyenDai" placeholder="Nguyên dài"></td>
       <td><input data-f="nguyenNgoai" placeholder="Ngoại quan"></td>
-      <td><input data-f="soLo" placeholder="Số lô"></td>
+      <td><input data-f="soLo"
+       placeholder="Số lô"
+       onblur="autoFillQuyCachFromSoLo(this.value)">
+</td>
       <td><input data-f="viTri" placeholder="Vị trí"></td>
       <td><input data-f="ngay" placeholder="Ngày"></td>
     </tr>
   </table>
 </div>
 
-<table>
+<table class="data-table">
 <thead>
 <tr><th colspan="16">新盘头统计表 — BẢNG THỐNG KÊ CON SUỐT MỚI</th></tr>
 <tr><th colspan="16">欢迎 😁</th></tr>
@@ -272,6 +300,9 @@ firebase.initializeApp({
 });
 const ref=firebase.database().ref("consuot");
 const statusEl=document.getElementById("status");
+// 🔹 bảng số lô chuẩn (tạo từ solo-manager.html)
+const soLoRef = firebase.database().ref("solos");
+
 
 firebase.database().ref(".info/connected").on("value",s=>{
   statusEl.innerText=s.val()?"🟢 Đã kết nối":"🔴 Mất kết nối";
@@ -553,6 +584,29 @@ function sortMobileCards(){
   cards.forEach(c=>mobileList.appendChild(c));
 }
 
+// 🔹 TỰ ĐỘNG NHẢY QUY CÁCH SỢI KHI NHẬP SỐ LÔ
+function autoFillQuyCachFromSoLo(soLo){
+  soLo = soLo.trim();
+  if(!soLo) return;
+
+  // ô quy cách sợi trong dòng nhập nhanh
+  const quyCachInput =
+    document.querySelector('#quickAdd [data-f="quyCach"]');
+
+  // nếu đã có rồi thì không ghi đè
+  if(quyCachInput.value) return;
+
+  // tra bảng số lô chuẩn
+  soLoRef.child(soLo).once("value", snap=>{
+    if(!snap.exists()){
+      alert("⚠️ Số lô chưa được khai báo trong hệ thống");
+      return;
+    }
+
+    const data = snap.val();
+    quyCachInput.value = data.quyCach || "";
+  });
+}
 
 
 
