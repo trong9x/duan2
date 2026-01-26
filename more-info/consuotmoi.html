@@ -228,6 +228,26 @@ td[contenteditable]{background:#fff7ed}
   color:#dc2626;
 }
 
+/* FORM NHẬP MOBILE ĐẸP – KHÔNG LƯỚT NGANG */
+.quick-form{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:10px;
+}
+
+@media(min-width:769px){
+  .quick-form{
+    grid-template-columns:repeat(4,1fr); /* desktop gọn */
+  }
+}
+
+.quick-form input{
+  width:100%;
+  padding:12px;
+  font-size:15px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+}
 
 </style>
 </head>
@@ -274,28 +294,23 @@ td[contenteditable]{background:#fff7ed}
   <div id="quickAdd">
 
   </div>
-  <table>
-   
+  <div class="quick-form">
+  <input data-f="soMay" type="number" placeholder="Số máy">
+  <input data-f="donHang" placeholder="Đơn hàng">
+  <input data-f="quyCach" placeholder="Quy cách sợi">
+  <input data-f="may" placeholder="Máy">
+  <input data-f="soConSuot" type="number" placeholder="Con suốt">
+  <input data-f="khoTrong" placeholder="Khổ trong">
+  <input data-f="khoNgoai" placeholder="Khổ ngoài">
+  <input data-f="soMet" type="number" placeholder="Số mét">
+  <input data-f="nguyenDai" placeholder="Nguyên dài">
+  <input data-f="nguyenNgoai" placeholder="Ngoại quan">
+  <input data-f="soLo" placeholder="Số lô"
+    onblur="autoFillQuyCachFromSoLo(this.value)">
+  <input data-f="viTri" placeholder="Vị trí">
+  <input data-f="ngay" type="date" placeholder="Ngày">
+</div>
 
-    <tr>
-      <td><input data-f="soMay" type="number" placeholder="Số máy"></td>
-      <td><input data-f="donHang" placeholder="Đơn hàng"></td>
-      <td><input data-f="quyCach" placeholder="Quy cách sợi"></td>
-      <td><input data-f="may" placeholder="Máy"></td>
-      <td><input data-f="soConSuot" type="number" placeholder="Con suốt"></td>
-      <td><input data-f="khoTrong" placeholder="Khổ trong"></td>
-      <td><input data-f="khoNgoai" placeholder="Khổ ngoài"></td>
-      <td><input data-f="soMet" type="number" placeholder="Số mét"></td>
-      <td><input data-f="nguyenDai" placeholder="Nguyên dài"></td>
-      <td><input data-f="nguyenNgoai" placeholder="Ngoại quan"></td>
-      <td><input data-f="soLo"
-       placeholder="Số lô"
-       onblur="autoFillQuyCachFromSoLo(this.value)">
-</td>
-      <td><input data-f="viTri" placeholder="Vị trí"></td>
-      <td><input data-f="ngay" type="date" placeholder="Ngày"></td>
-    </tr>
-  </table>
 </div>
 
 <table class="data-table">
@@ -704,6 +719,9 @@ function showSaved(){
 
 
 </script>
+
+</body>
+</html>
 
 </body>
 </html>
