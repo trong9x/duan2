@@ -305,8 +305,15 @@ td[contenteditable]{background:#fff7ed}
   <input data-f="soMet" type="number" placeholder="Số mét">
   <input data-f="nguyenDai" placeholder="Nguyên dài">
   <input data-f="nguyenNgoai" placeholder="Ngoại quan">
-  <input data-f="soLo" placeholder="Số lô"
+  <div style="display:flex;gap:8px;align-items:center">
+  <input
+    id="soLoInput"
+    data-f="soLo"
+    placeholder="Số lô"
     onblur="autoFillQuyCachFromSoLo(this.value)">
+  <button type="button" onclick="openQRScanner()">📷</button>
+</div>
+
   <input data-f="viTri" placeholder="Vị trí">
   <input data-f="ngay" type="date" placeholder="Ngày">
 </div>
@@ -363,9 +370,9 @@ const datalist=document.getElementById("suggestions");
 /* ADD FROM QUICK ROW */
 function addRow(){
   const data={};
-  document.querySelectorAll("#quickAdd input").forEach(i=>{
-    data[i.dataset.f]=i.value.trim();
-  });
+  document.querySelectorAll(".quick-form input").forEach(i=>{
+  data[i.dataset.f] = i.value.trim();
+});
 
   if(Object.values(data).every(v=>!v))
     return alert("⚠️ Chưa nhập dữ liệu");
@@ -375,7 +382,8 @@ function addRow(){
   // ✅ HIỆU ỨNG LƯU THÀNH CÔNG
   showSaved();
 
-  document.querySelectorAll("#quickAdd input").forEach(i=>i.value="");
+ document.querySelectorAll(".quick-form input").forEach(i=>i.value="");
+
 }
 
 
@@ -713,10 +721,73 @@ function showSaved(){
   toast.style.opacity=1;
   setTimeout(()=>toast.style.opacity=0,1200);
 }
+let qrStream, qrDetector, qrRunning=false;
+
+async function openQRScanner(){
+  if(!("BarcodeDetector" in window)){
+    alert("❌ Trình duyệt không hỗ trợ quét QR");
+    return;
+  }
+
+  qrDetector = new BarcodeDetector({formats:["qr_code"]});
+  const video = document.getElementById("qrVideo");
+  document.getElementById("qrModal").style.display="flex";
+
+  qrStream = await navigator.mediaDevices.getUserMedia({
+    video:{facingMode:"environment"}
+  });
+  video.srcObject = qrStream;
+  qrRunning = true;
+  scanLoop(video);
+}
+
+async function scanLoop(video){
+  if(!qrRunning) return;
+
+  const codes = await qrDetector.detect(video);
+  if(codes.length){
+    const soLo = codes[0].rawValue.trim();
+
+    // ✅ ĐIỀN SỐ LÔ
+    const input = document.getElementById("soLoInput");
+    input.value = soLo;
+
+    // ✅ NHẢY QUY CÁCH
+    autoFillQuyCachFromSoLo(soLo);
+
+    closeQRScanner();
+    return;
+  }
+  requestAnimationFrame(()=>scanLoop(video));
+}
+
+function closeQRScanner(){
+  qrRunning=false;
+  document.getElementById("qrModal").style.display="none";
+  if(qrStream){
+    qrStream.getTracks().forEach(t=>t.stop());
+  }
+}
 
 
 
 </script>
+<div id="qrModal" style="
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.7);
+  z-index:9999;
+  align-items:center;
+  justify-content:center;
+">
+  <div style="background:#fff;padding:12px;border-radius:12px;width:90%;max-width:360px">
+    <video id="qrVideo" autoplay playsinline style="width:100%;border-radius:10px"></video>
+    <button onclick="closeQRScanner()" style="width:100%;margin-top:10px">
+      ❌ Đóng
+    </button>
+  </div>
+</div>
 
 </body>
 </html>
