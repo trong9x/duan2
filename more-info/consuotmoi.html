@@ -7,6 +7,8 @@
 
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
 
 <style>
 :root{
@@ -256,6 +258,8 @@ td[contenteditable]{background:#fff7ed}
 
 <div class="toolbar">
   <button onclick="addRow()">➕ THÊM DÒNG</button>
+  <button onclick="exportExcel()">📤 XUẤT EXCEL</button>
+
   <input id="search" list="suggestions" placeholder="🔍 Nhập số / sợi (vd: 150)">
   <datalist id="suggestions"></datalist>
   <span id="status">⏳</span>
@@ -772,6 +776,65 @@ function closeQRScanner(){
     qrStream.getTracks().forEach(t=>t.stop());
   }
 }
+function exportExcel(){
+  ref.once("value", snap=>{
+    if(!snap.exists()){
+      alert("⚠️ Không có dữ liệu để xuất");
+      return;
+    }
+
+    const rows = [];
+
+    // HEADER – đúng thứ tự bảng
+    rows.push([
+      "SỐ MÁY",
+      "ĐƠN HÀNG",
+      "QUY CÁCH SỢI",
+      "MÁY",
+      "SỐ CON SUỐT",
+      "KHỔ TRONG",
+      "KHỔ NGOÀI",
+      "SỐ MÉT",
+      "NGUYÊN DÀI",
+      "NGOẠI QUAN",
+      "SỐ LÔ",
+      "VỊ TRÍ",
+      "NGÀY",
+      "LÊN MÁY",
+      "THỜI GIAN LÊN"
+    ]);
+
+    snap.forEach(c=>{
+      const d = c.val();
+      rows.push([
+        d.soMay || "",
+        d.donHang || "",
+        d.quyCach || "",
+        d.may || "",
+        d.soConSuot || "",
+        d.khoTrong || "",
+        d.khoNgoai || "",
+        d.soMet || "",
+        d.nguyenDai || "",
+        d.nguyenNgoai || "",
+        d.soLo || "",
+        d.viTri || "",
+        d.ngay || "",
+        d.mayLen || "",
+        d.timeLen || ""
+      ]);
+    });
+
+    // TẠO FILE EXCEL
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    XLSX.utils.book_append_sheet(wb, ws, "CON_SUOT_MOI");
+
+    const today = new Date().toISOString().slice(0,10);
+    XLSX.writeFile(wb, `bang_con_suot_${today}.xlsx`);
+  });
+}
 
 
 
@@ -795,6 +858,7 @@ function closeQRScanner(){
 
 </body>
 </html>
+
 
 
 </body>
