@@ -196,6 +196,38 @@ td[contenteditable]{background:#fff7ed}
     display:none;
   }
 }
+#quickAddToggle{
+  background:#0b5ed7;
+  color:#fff;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  font-weight:600;
+  margin-bottom:6px;
+}
+
+@media(max-width:768px){
+  #quickAdd{
+    display:none;
+  }
+  #quickAdd.open{
+    display:block;
+  }
+}
+/* MOBILE DELETE */
+.card{
+  position:relative;
+}
+
+.card .delete-btn{
+  position:absolute;
+  top:8px;
+  right:8px;
+  font-size:18px;
+  cursor:pointer;
+  color:#dc2626;
+}
+
 
 </style>
 </head>
@@ -233,24 +265,27 @@ td[contenteditable]{background:#fff7ed}
 </div>
 
 <!-- DÒNG NHẬP NHANH -->
-<div id="quickAdd">
-  <!-- NÚT THÊM DÒNG CHO MOBILE -->
-<div id="mobileAdd">
-  <button onclick="addRow()">➕ THÊM DÒNG</button>
-</div>
+<div id="quickAddWrap">
 
+  <div id="quickAddToggle" onclick="toggleQuickAdd()">
+    ➕ Nhập con suốt
+  </div>
+
+  <div id="quickAdd">
+
+  </div>
   <table>
    
 
     <tr>
-      <td><input data-f="soMay" placeholder="Số máy"></td>
+      <td><input data-f="soMay" type="number" placeholder="Số máy"></td>
       <td><input data-f="donHang" placeholder="Đơn hàng"></td>
       <td><input data-f="quyCach" placeholder="Quy cách sợi"></td>
       <td><input data-f="may" placeholder="Máy"></td>
-      <td><input data-f="soConSuot" placeholder="Con suốt"></td>
+      <td><input data-f="soConSuot" type="number" placeholder="Con suốt"></td>
       <td><input data-f="khoTrong" placeholder="Khổ trong"></td>
       <td><input data-f="khoNgoai" placeholder="Khổ ngoài"></td>
-      <td><input data-f="soMet" placeholder="Số mét"></td>
+      <td><input data-f="soMet" type="number" placeholder="Số mét"></td>
       <td><input data-f="nguyenDai" placeholder="Nguyên dài"></td>
       <td><input data-f="nguyenNgoai" placeholder="Ngoại quan"></td>
       <td><input data-f="soLo"
@@ -258,7 +293,7 @@ td[contenteditable]{background:#fff7ed}
        onblur="autoFillQuyCachFromSoLo(this.value)">
 </td>
       <td><input data-f="viTri" placeholder="Vị trí"></td>
-      <td><input data-f="ngay" placeholder="Ngày"></td>
+      <td><input data-f="ngay" type="date" placeholder="Ngày"></td>
     </tr>
   </table>
 </div>
@@ -316,10 +351,18 @@ function addRow(){
   document.querySelectorAll("#quickAdd input").forEach(i=>{
     data[i.dataset.f]=i.value.trim();
   });
-  if(Object.values(data).every(v=>!v)) return alert("⚠️ Chưa nhập dữ liệu");
+
+  if(Object.values(data).every(v=>!v))
+    return alert("⚠️ Chưa nhập dữ liệu");
+
   ref.push(data);
+
+  // ✅ HIỆU ỨNG LƯU THÀNH CÔNG
+  showSaved();
+
   document.querySelectorAll("#quickAdd input").forEach(i=>i.value="");
 }
+
 
 /* CREATE ROW */
 function createRow(d){
@@ -331,7 +374,11 @@ function createRow(d){
   const td=document.createElement("td");
   td.contentEditable = !d.locked; // 🔒 chỉ khóa ô
   td.innerText=d[k]||"";
-  td.oninput=()=>ref.child(tr.dataset.key).update({[k]:td.innerText});
+  td.oninput = () => {
+  ref.child(tr.dataset.key).update({[k]:td.innerText});
+  flashCell(td); // ✅ hiệu ứng lưu
+};
+
   tr.appendChild(td);
 });
 
@@ -456,6 +503,8 @@ function createCard(d){
   if(d.locked) card.classList.add("locked");
 
   card.innerHTML=`
+    <div class="delete-btn">❌</div>
+
     <h3>${d.quyCach||"(Chưa có sợi)"}</h3>
     <div class="row"><span>Đơn hàng</span><b>${d.donHang||""}</b></div>
     <div class="row"><span>Máy</span><b>${d.may||""}</b></div>
@@ -464,15 +513,25 @@ function createCard(d){
     <div class="row"><span>Ngày</span><b>${d.ngay||""}</b></div>
   `;
 
+  // 🔴 XÓA DÒNG (MOBILE)
+  card.querySelector(".delete-btn").onclick = ()=>{
+    if(confirm("❌ Xóa dòng này?")){
+      ref.child(d._key).remove();
+    }
+  };
+
   const btn=document.createElement("div");
   btn.className="btn";
-  btn.innerText=d.mayLen?`${d.mayLen} ⏱ ${d.timeLen}`:"LÊN MÁY";
-  btn.onclick = () => lenMayByKey(d._key, d);
+  btn.innerText=d.mayLen
+    ? `${d.mayLen} ⏱ ${d.timeLen}`
+    : "LÊN MÁY";
 
+  btn.onclick = () => lenMayByKey(d._key, d);
 
   card.appendChild(btn);
   mobileList.appendChild(card);
 }
+
 
 let sortState = {}; // lưu trạng thái ↑ ↓
 
@@ -606,6 +665,41 @@ function autoFillQuyCachFromSoLo(soLo){
   });
 }
 
+function toggleQuickAdd(){
+  document.getElementById("quickAdd").classList.toggle("open");
+}
+function flashCell(el){
+  el.style.background = "#dcfce7"; // xanh nhạt
+  setTimeout(()=>{
+    el.style.background = "";
+  }, 400);
+}
+
+function showSaved(){
+  let toast = document.getElementById("toastSaved");
+  if(!toast){
+    toast = document.createElement("div");
+    toast.id = "toastSaved";
+    toast.innerText = "✅ Đã lưu";
+    Object.assign(toast.style,{
+      position:"fixed",
+      bottom:"20px",
+      left:"50%",
+      transform:"translateX(-50%)",
+      background:"#16a34a",
+      color:"#fff",
+      padding:"10px 18px",
+      borderRadius:"999px",
+      fontSize:"14px",
+      zIndex:9999,
+      opacity:0,
+      transition:"0.3s"
+    });
+    document.body.appendChild(toast);
+  }
+  toast.style.opacity=1;
+  setTimeout(()=>toast.style.opacity=0,1200);
+}
 
 
 
@@ -613,5 +707,3 @@ function autoFillQuyCachFromSoLo(soLo){
 
 </body>
 </html>
-
-
