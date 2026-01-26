@@ -661,24 +661,22 @@ function autoFillQuyCachFromSoLo(soLo){
   soLo = soLo.trim();
   if(!soLo) return;
 
-  // ô quy cách sợi trong dòng nhập nhanh
   const quyCachInput =
-    document.querySelector('#quickAdd [data-f="quyCach"]');
+    document.querySelector('.quick-form [data-f="quyCach"]');
 
-  // nếu đã có rồi thì không ghi đè
+  if(!quyCachInput) return;
+
   if(quyCachInput.value) return;
 
-  // tra bảng số lô chuẩn
   soLoRef.child(soLo).once("value", snap=>{
     if(!snap.exists()){
-      alert("⚠️ Số lô chưa được khai báo trong hệ thống");
+      alert("⚠️ Số lô chưa được khai báo");
       return;
     }
-
-    const data = snap.val();
-    quyCachInput.value = data.quyCach || "";
+    quyCachInput.value = snap.val().quyCach || "";
   });
 }
+
 
 function toggleQuickAdd(){
   document.getElementById("quickAdd").classList.toggle("open");
