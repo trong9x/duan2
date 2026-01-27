@@ -128,7 +128,6 @@ th{
     font-weight:600;
     color:#374151;
   }
-
   tbody td:nth-child(1)::before{content:"订单";}
   tbody td:nth-child(2)::before{content:"机器";}
   tbody td:nth-child(3)::before{content:"原料";}
@@ -142,33 +141,23 @@ th{
   tbody td:nth-child(11)::before{content:"操作";}
 
 }
-
-/* ===== ROW GỌN (VẪN GIỮ NÚT) ===== */
-.compact-row td{
-  padding:4px 6px !important;   /* giảm chiều cao */
-  font-size:13px;               /* chữ nhỏ hơn chút */
-  line-height:1.2;
-}
-
-.compact-row .action-col{
-  gap:4px;
-}
-
-.compact-row .action-col button{
-  width:36px;
-  height:30px;
-  font-size:14px;
-}
-
 </style>
 </head>
 
 <body>
-  
-  <a style="color: #ef4444;" href="/more-info/done.html"> 已完成</a>
- 
 
 <h2>📦 紧急订单 | Bảng đơn hàng gấp</h2>
+<!-- 🔥 DÁN 1 DÒNG EXCEL -->
+<div style="margin-bottom:12px;display:flex;gap:8px;align-items:center">
+  <textarea id="pasteRow"
+    placeholder="Dán 1 dòng Excel vào đây (Ctrl+V)"
+    style="flex:1;height:42px"></textarea>
+
+  <button onclick="pasteOneRow()" class="add-btn">
+    ➡️ Tạo đơn nhanh
+  </button>
+</div>
+
 
 <table>
 <thead>
@@ -176,6 +165,7 @@ th{
   <th>订单</th>
   <th>机器</th>
   <th>原料</th>
+  <th>经轴</th>
   <th>数量</th>
   <th>日期</th>
   <th>米数</th>
@@ -193,12 +183,20 @@ th{
   <td><input id="orderName"></td>
   <td><input id="machine"></td>
   <td><input id="material"></td>
-  <td><input id="quantity" type="number"></td>
-  <td><input id="date" type="date"></td>
-  <td><input id="meters" type="number"></td>
-  <td>
-    <select id="worker"></select>
-  </td>
+
+<td>
+  <input id="axis" type="number" placeholder="经轴">
+</td>
+
+<td><input id="quantity" type="number"></td>
+<td><input id="date" type="date"></td>
+<td><input id="meters" type="number"></td>
+
+
+<td>
+  <select id="worker"></select>
+</td>
+
 
   <!-- ✅ CỘT GẤP -->
   <td>
@@ -238,13 +236,15 @@ const material=document.getElementById("material");
 const quantity=document.getElementById("quantity");
 const date=document.getElementById("date");
 const meters=document.getElementById("meters");
+const axis=document.getElementById("axis");
 const worker=document.getElementById("worker");
 const tableBody=document.getElementById("tableBody");
 const addBtn=document.getElementById("addBtn");
 
 let editKey=null;
 let alerted=false;
-date.valueAsDate=new Date();
+date.value = "";
+
 
 // load NV
 workers.forEach(n=>{
@@ -267,8 +267,10 @@ addBtn.onclick=()=>{
   material:material.value,
   quantity:quantity.value,
   date:date.value,
-  meters:meters.value,
-  worker:worker.value,
+  meters: meters.value,
+  axis: axis.value,   // ✅ 经轴
+  worker: worker.value,
+
   urgent: urgent.value === "true"
 };
 
@@ -290,10 +292,17 @@ addBtn.onclick=()=>{
     });
   }
 
-  // reset form
-  orderName.value=machine.value=material.value=
-  quantity.value=meters.value=worker.value="";
-  date.valueAsDate=new Date();
+  /// reset form
+orderName.value =
+machine.value =
+material.value =
+quantity.value =
+meters.value =
+axis.value =
+worker.value = "";
+
+date.value = "";
+
 };
 
 // LOAD
@@ -307,50 +316,71 @@ function render(data){
   tableBody.innerHTML="";
   if(!data) return;
 
-  Object.entries(data).forEach(([k,o])=>{
-
-    // 🚫 ĐÃ HOÀN THÀNH → KHÔNG HIỂN THỊ Ở BẢNG NÀY
-    if(o.done === true) return;
+  Object.entries(data)
+  .sort((a,b)=>{
+    const m1 = (a[1].material || "").toLowerCase();
+    const m2 = (b[1].material || "").toLowerCase();
+    return m1.localeCompare(m2);
+  })
+  .forEach(([k,o])=>{
 
     const tr=document.createElement("tr");
-
-// 🔹 Đơn đang xử lý → hiển thị gọn
-if(!o.done){
-  tr.classList.add("compact-row");
-}
-
     const diff=(Date.now()-new Date(o.date))/86400000;
 
-    if(o.urgent === true || o.urgent === "true"){
-      tr.classList.add("level-red");
-    }
-    else if(diff >= 5){
-      tr.classList.add("level-red");
-    }
-    else if(diff >= 2){
-      tr.classList.add("level-yellow");
-    }
-    else{
-      tr.classList.add("level-green");
-    }
+    if(!o.done){
+  if(o.urgent === true || o.urgent === "true"){
+    tr.classList.add("level-red");
+  }
+  else if(diff >= 5){
+    tr.classList.add("level-red");
+  }
+  else if(diff >= 2){
+    tr.classList.add("level-yellow");
+  }
+  else{
+    tr.classList.add("level-green");
+  }
+}
+
 
     tr.innerHTML=`
       <td>${o.orderName}</td>
       <td>${o.machine}</td>
       <td>${o.material}</td>
-      <td>${o.quantity}</td>
+      <td>
+  ${
+    o.axis
+      ? "L" + o.axis   // 👉 4 → L4
+      : "-"
+  }
+</td>
+    <!-- 经轴 -->
+      <td>${o.quantity}</td>        <!-- 数量 -->
       <td>${o.date}</td>
       <td>${o.meters} m</td>
+
       <td>${o.worker}</td>
+
       <td>${o.position||"-"}</td>
       <td>${o.urgent === true ? "🔥 急单" : "-"}</td>
-      <td>⏳ 进行中</td>
+      <td>${o.done ? "🟢 已完成" : "⏳ 进行中"}</td>
+
 
       <td>
         <div class="action-col">
-          <button class="done-btn" onclick="done('${k}')">✔</button>
-          <button class="edit" onclick="editRow('${k}')">✏️</button>
-          <button class="delete" onclick="del('${k}')">🗑️</button>
+          ${
+            o.done
+            ? `<span class="locked">🔒</span>`
+            : `
+              <button class="done-btn" title="Hoàn thành"
+                onclick="done('${k}')">✔</button>
+
+              <button class="edit" title="Sửa"
+                onclick="editRow('${k}')">✏️</button>
+            `
+          }
+          <button class="delete" title="Xoá"
+            onclick="del('${k}')">🗑️</button>
         </div>
       </td>
     `;
@@ -358,16 +388,11 @@ if(!o.done){
   });
 }
 
-
 // DONE
 function done(key){
   const pos=prompt("📦 输入锭位 / Nhập vị trí con suốt");
   if(!pos) return;
-  soiRef.child(key).update({
-  done:true,
-  position:pos,
-  doneAt: Date.now()
-});
+  soiRef.child(key).update({done:true,position:pos});
 }
 
 // DELETE
@@ -393,34 +418,73 @@ function editRow(key){
   soiRef.child(key).once("value", snap=>{
     const o = snap.val();
 
+    // ❌ Đơn đã hoàn thành thì không cho sửa
     if(o.done){
       alert("❌ 已完成订单不能修改\nĐơn đã hoàn thành không được sửa");
       return;
     }
 
+    // 🔑 đánh dấu đang edit
     editKey = key;
 
-    orderName.value = o.orderName;
-    machine.value   = o.machine;
-    material.value  = o.material;
-    quantity.value  = o.quantity;
-    date.value      = o.date;
-    meters.value    = o.meters;
-    worker.value    = o.worker;
+    // ===== LOAD DỮ LIỆU LÊN FORM =====
+    orderName.value = o.orderName || "";
+    machine.value   = o.machine   || "";
+    material.value  = o.material  || "";
+    quantity.value  = o.quantity  || "";
+    date.value      = o.date      || "";
+    meters.value    = o.meters    || "";
+
+    axis.value      = o.axis      || "";   // ✅ 经轴 (DÒNG QUAN TRỌNG NHẤT)
+
+    worker.value    = o.worker    || "";
+
     urgent.value = (o.urgent === true || o.urgent === "true")
       ? "true"
       : "false";
 
-
+    // ===== ĐỔI NÚT THÀNH SAVE =====
     addBtn.textContent = "💾 保存 / Lưu";
     addBtn.className   = "save-btn";
   });
 }
 
+function pasteOneRow(){
+  const text = document.getElementById("pasteRow").value.trim();
+  if(!text) return alert("❌ Chưa dán dữ liệu");
+
+  const c = text.split("\t");
+
+  soiRef.push({
+  orderName: c[4],
+  machine:   c[1],
+  material:  c[5],
+  axis:      c[2],  // ✅ 经轴
+  quantity:  c[3],       
+  date:      c[0]?.slice(0,10),
+  meters:    c[6],
+  worker:    "任大哥",
+  urgent:    true,
+  done:      false,
+  position: "",
+  createdAt: Date.now()
+});
+
+
+  document.getElementById("pasteRow").value="";
+  alert("✅ 已创建急单（日期不跳）");
+}
+
+
+
 </script>
 
 </body>
 </html>
+
+
+
+
 
 
 
