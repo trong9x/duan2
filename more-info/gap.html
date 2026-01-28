@@ -282,13 +282,15 @@ addBtn.onclick=()=>{
   }
   // 🟢 NẾU THÊM MỚI → PUSH
   else{
-    soiRef.push({
-      ...data,
-      position:"",
-      done:false,
-      createdAt:Date.now()
-    });
+  soiRef.push({
+  ...data,
+  position:"",
+  done:false,
+  pushed:false,      // ⛔ CHƯA ĐẨY XUỐNG MÁY
+  createdAt:Date.now()
+});
   }
+
 
   // reset form
   orderName.value=machine.value=material.value=
@@ -309,8 +311,9 @@ function render(data){
 
   Object.entries(data).forEach(([k,o])=>{
 
-    // 🚫 ĐÃ HOÀN THÀNH → KHÔNG HIỂN THỊ Ở BẢNG NÀY
-    if(o.done === true) return;
+  // 🚫 ĐÃ HOÀN THÀNH HOẶC ĐÃ ĐẨY → KHÔNG HIỂN THỊ
+  if(o.done === true || o.pushed === true) return;
+
 
     const tr=document.createElement("tr");
 
@@ -348,10 +351,12 @@ if(!o.done){
 
       <td>
         <div class="action-col">
+          <button class="push" onclick="pushToMachine('${k}')">⬇️</button>
           <button class="done-btn" onclick="done('${k}')">✔</button>
           <button class="edit" onclick="editRow('${k}')">✏️</button>
           <button class="delete" onclick="del('${k}')">🗑️</button>
         </div>
+
       </td>
     `;
     tableBody.appendChild(tr);
@@ -416,6 +421,20 @@ function editRow(key){
     addBtn.className   = "save-btn";
   });
 }
+function pushToMachine(key){
+  const machineNo = prompt("📥 Nhập số máy (vd: 1, 2, 11)");
+
+  if(!machineNo) return alert("❌ Chưa nhập số máy");
+
+  soiRef.child(key).update({
+    machineNo: machineNo,   // 👈 MÁY THẬT
+    pushed: true,
+    pushedAt: Date.now()
+  });
+
+  alert("✅ Đã đẩy đơn xuống máy " + machineNo);
+}
+
 
 </script>
 
