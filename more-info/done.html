@@ -71,36 +71,48 @@ th{
     gap:14px;
   }
 
-  .card{
+  .mobile-item{
     background:#fff;
     border-radius:16px;
     padding:14px;
-    box-shadow:0 6px 16px rgba(0,0,0,.06);
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
   }
 
-  .grid{
-    display:grid;
-    grid-template-columns:70px 1fr;
-    row-gap:10px;
-    column-gap:10px;
-    font-size:15px;
+  .m-row{
+    margin-bottom:10px;
   }
 
-  .label{
+  .m-label{
+    font-size:12px;
     color:#9ca3af;
     font-weight:600;
   }
 
-  .value{
-    text-align:right;
-    font-weight:600;
+  .m-value{
+    margin-top:2px;
+    font-size:15px;
+    font-weight:700;
     color:#111827;
+    word-break:break-word;
   }
 
-  .code{
+  .m-code{
+    font-size:16px;
     font-weight:800;
     color:#b45309;
-    font-size:16px;
+  }
+
+  .del-btn{
+    margin-top:14px;
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:14px;
+    background:#ef4444;
+    color:#fff;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
   }
 }
 
@@ -217,35 +229,49 @@ function render(){
       doneBody.appendChild(tr);
 
       /* ===== MOBILE ===== */
-      const card=document.createElement("div");
-      card.className="card";
-      card.innerHTML=`
-  <div class="grid">
-    <div class="label">订单</div>
-    <div class="value code">${o.orderName}</div>
+     onst card=document.createElement("div");
+card.className="mobile-item";
 
-    <div class="label">机器</div>
-    <div class="value">${o.machine}</div>
-
-    <div class="label">原料</div>
-    <div class="value">${o.material || "-"}</div>
-
-    <div class="label">数量</div>
-    <div class="value">${o.quantity || "-"}</div>
-
-    <div class="label">米数</div>
-    <div class="value">${o.meters ? o.meters + " m" : "-"}</div>
-
-    <div class="label">运行机器</div>
-<div class="value"><b>Máy ${o.machineNo || "-"}</b></div>
-
-    <div class="value">${o.position || "-"}</div>
-
-    <div class="label">完成</div>
-    <div class="value">${doneTime}</div>
-    <div class="label">整经机器</div>
+card.innerHTML=`
+  <div class="m-row">
+    <div class="m-label">订单</div>
+    <div class="m-value m-code">${o.orderName}</div>
   </div>
-`;
+
+  <div class="m-row">
+    <div class="m-label">机器</div>
+    <div class="m-value">${o.machine || "-"}</div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">原料</div>
+    <div class="m-value">${o.material || "-"}</div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">数量</div>
+    <div class="m-value">${o.quantity || "-"}</div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">米数</div>
+    <div class="m-value">${o.meters ? o.meters+" m" : "-"}</div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">整经机器</div>
+    <div class="m-value"><b>Máy ${o.machineNo || "-"}</b></div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">锭位</div>
+    <div class="m-value">${o.position || "-"}</div>
+  </div>
+
+  <div class="m-row">
+    <div class="m-label">完成时间</div>
+    <div class="m-value">${doneTime}</div>
+  </div>
 
       mobileList.appendChild(card);
     });
