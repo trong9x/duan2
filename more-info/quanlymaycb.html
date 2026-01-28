@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quản lý máy | Nhận & hoàn thành đơn</title>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+  font-family:system-ui,-apple-system,BlinkMacSystemFont;
+  background:linear-gradient(180deg,#e9eef5,#f8fafc);
+  margin:0;
+  padding:14px;
+}
+
+h2{
+  text-align:center;
+  font-size:22px;
+  margin:10px 0 10px;
+  font-weight:800;
+}
+
+#langBtn{
+  padding:8px 14px;
+  border:none;
+  border-radius:999px;
+  background:#111827;
+  color:#fff;
+  font-weight:700;
+  cursor:pointer;
+}
+
+.top-select{
+  display:flex;
+  justify-content:center;
+  margin:12px 0 16px;
+}
+
+.top-select select{
+  padding:12px 18px;
+  font-size:16px;
+  border-radius:16px;
+  border:none;
+  background:#c824da;
+  color:#fff;
+  font-weight:700;
+}
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:14px 14px 16px;
+  margin-bottom:16px;
+  box-shadow:0 10px 22px rgba(0,0,0,.12);
+  border-left:6px solid #2563eb;
+}
+
+.card.urgent{
+  border-left-color:#ef4444;
+  background:#fff7f7;
+}
+
+.order-title{
+  font-size:17px;
+  font-weight:800;
+  margin-bottom:6px;
+}
+
+.row{
+  display:flex;
+  justify-content:space-between;
+  font-size:14px;
+  margin-top:4px;
+  color:#334155;
+}
+
+.timer{
+  margin-top:8px;
+  font-size:14px;
+  font-weight:800;
+  background:#e0e7ff;
+  padding:6px 10px;
+  border-radius:10px;
+  display:inline-block;
+}
+
+.badge{
+  display:inline-block;
+  margin-top:8px;
+  padding:4px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:800;
+  background:#fee2e2;
+  color:#7f1d1d;
+}
+
+.start{
+  margin-top:10px;
+  width:100%;
+  padding:14px;
+  font-size:18px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:#fff;
+  font-weight:900;
+}
+
+.done{
+  margin-top:12px;
+  width:100%;
+  padding:16px;
+  font-size:19px;
+  border:none;
+  border-radius:16px;
+  background:linear-gradient(135deg,#22c55e,#16a34a);
+  color:#fff;
+  font-weight:900;
+}
+
+.empty{
+  text-align:center;
+  padding:40px 10px;
+  color:#64748b;
+  font-size:16px;
+}
+</style>
+</head>
+
+<body>
+
+<h2></h2>
+<div style="text-align:center">
+  <button id="langBtn">🇨🇳 中文</button>
+</div>
+
+<div class="top-select">
+  <select id="machineSelect"></select>
+</div>
+
+<div id="orderList"></div>
+
+<script>
+// ===== NGÔN NGỮ =====
+let lang="vi";
+const TEXT = {
+  vi:{
+    title:"🛠️ QUẢN LÝ MÁY – NHẬN ĐƠN",
+    material:"Nguyên liệu",
+    qty:"Số lượng",
+    worker:"Nhân viên",
+    start:"▶ BẮT ĐẦU",
+    done:"✔ HOÀN THÀNH",
+    notStart:"⏸ Chưa bắt đầu",
+    running:"⏱ Đang chạy",
+    urgent:"🔥 ĐƠN GẤP",
+    empty:"📭 Không có đơn",
+    confirmStart:"Bắt đầu chạy đơn này?",
+    pos:"📍 Nhập vị trí con suốt"
+  },
+  zh:{
+    title:"🛠️ 机器管理 – 接收订单",
+    material:"原料",
+    qty:"数量",
+    worker:"员工",
+    start:"▶ 开始",
+    done:"✔ 完成",
+    notStart:"⏸ 未开始",
+    running:"⏱ 运行中",
+    urgent:"🔥 急单",
+    empty:"📭 没有订单",
+    confirmStart:"开始运行该订单？",
+    pos:"📍 输入锭位"
+  }
+};
+
+
+// ===== FIREBASE =====
+firebase.initializeApp({
+  apiKey:"AIzaSyAJ9dZW5b8WxF22cocPIB9bdsAGBHW-k",
+  databaseURL:"https://quan-ly-may-det-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const soiRef=firebase.database().ref("soi");
+
+// ===== MÁY =====
+const machines=[1,2,3,4,5,11,12,13,14,15,16,17,18,19,20,21,22];
+const machineSelect=document.getElementById("machineSelect");
+const orderList=document.getElementById("orderList");
+
+machines.forEach(m=>{
+  const o=document.createElement("option");
+  o.value=m;
+  o.textContent="Máy "+m;
+  machineSelect.appendChild(o);
+});
+
+machineSelect.onchange=loadOrders;
+document.getElementById("langBtn").onclick=()=>{
+  lang=lang==="vi"?"zh":"vi";
+  document.getElementById("langBtn").textContent=lang==="vi"?"🇨🇳 中文":"🇻🇳 Tiếng Việt";
+  loadOrders();
+};
+
+function loadOrders(){
+  document.querySelector("h2").textContent=TEXT[lang].title;
+  const m=machineSelect.value;
+  orderList.innerHTML="";
+
+  soiRef.orderByChild("machineNo").equalTo(m).once("value",snap=>{
+    const data=snap.val();
+    if(!data){
+      orderList.innerHTML=`<div class="empty">${TEXT[lang].empty}</div>`;
+      return;
+    }
+
+    Object.entries(data).forEach(([k,o])=>{
+      if(o.done||!o.pushed) return;
+
+      const div=document.createElement("div");
+      div.className="card"+(o.urgent?" urgent":"");
+
+      div.innerHTML=`
+        <div class="order-title">📦 ${o.orderName}</div>
+        <div class="row">
+  <span>${TEXT[lang].material}</span>
+  <span>${o.material}</span>
+</div>
+
+<div class="row">
+  <span>${TEXT[lang].qty}</span>
+  <span>${o.quantity} / ${o.meters} m</span>
+</div>
+
+<div class="row">
+  <span>${TEXT[lang].worker}</span>
+  <span>${o.worker}</span>
+</div>
+
+
+        <div class="timer" id="timer-${k}">
+          ${o.startedAt?TEXT[lang].running:TEXT[lang].notStart}
+        </div>
+
+        ${!o.startedAt?`<button class="start" onclick="startJob('${k}')">${TEXT[lang].start}</button>`:""}
+        ${o.urgent?`<div class="badge">${TEXT[lang].urgent}</div>`:""}
+        <button class="done" onclick="finish('${k}')">${TEXT[lang].done}</button>
+      `;
+      orderList.appendChild(div);
+
+      if(o.startedAt){
+        setInterval(()=>{
+          const el=document.getElementById("timer-"+k);
+          if(el) el.textContent=TEXT[lang].running+": "+formatTime(Date.now()-o.startedAt);
+        },1000);
+      }
+    });
+  });
+}
+
+function startJob(key){
+  if(!confirm(TEXT[lang].confirmStart)) return;
+  soiRef.child(key).update({startedAt:Date.now()});
+  loadOrders();
+}
+
+function finish(key){
+  const pos=prompt(TEXT[lang].pos);
+  if(!pos) return;
+  soiRef.child(key).update({done:true,position:pos,doneAt:Date.now()});
+  loadOrders();
+}
+
+function formatTime(ms){
+  const t=Math.floor(ms/1000);
+  const h=String(Math.floor(t/3600)).padStart(2,"0");
+  const m=String(Math.floor((t%3600)/60)).padStart(2,"0");
+  const s=String(t%60).padStart(2,"0");
+  return `${h}:${m}:${s}`;
+}
+
+loadOrders();
+</script>
+
+</body>
+</html>
