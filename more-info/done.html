@@ -133,6 +133,7 @@ th{
         <th>日期</th>
         <th>米数</th>
         <th>员工</th>
+        <th>整经机器</th>
         <th>锭位</th>
         <th>完成时间</th>
       </tr>
@@ -209,6 +210,7 @@ function render(){
         <td>${o.date}</td>
         <td>${o.meters} m</td>
         <td>${o.worker}</td>
+        <td><b>Máy ${o.machineNo || "-"}</b></td>
         <td><b>${o.position||"-"}</b></td>
         <td>${doneTime}</td>
       `;
@@ -234,11 +236,14 @@ function render(){
     <div class="label">米数</div>
     <div class="value">${o.meters ? o.meters + " m" : "-"}</div>
 
-    <div class="label">锭位</div>
+    <div class="label">运行机器</div>
+<div class="value"><b>Máy ${o.machineNo || "-"}</b></div>
+
     <div class="value">${o.position || "-"}</div>
 
     <div class="label">完成</div>
     <div class="value">${doneTime}</div>
+    <div class="label">整经机器</div>
   </div>
 `;
 
