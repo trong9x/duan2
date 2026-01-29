@@ -132,6 +132,7 @@ th{
   tbody td:nth-child(1)::before{content:"订单";}
   tbody td:nth-child(2)::before{content:"机器";}
   tbody td:nth-child(3)::before{content:"原料";}
+  tbody td:nth-child(4)::before{content:"经轴";}
   tbody td:nth-child(4)::before{content:"数量";}
   tbody td:nth-child(5)::before{content:"日期";}
   tbody td:nth-child(6)::before{content:"米数";}
@@ -191,6 +192,7 @@ th{
   <th>订单</th>
   <th>机器</th>
   <th>原料</th>
+  <th>经轴</th>
   <th>数量</th>
   <th>日期</th>
   <th>米数</th>
@@ -208,6 +210,10 @@ th{
   <td><input id="orderName"></td>
   <td><input id="machine"></td>
   <td><input id="material"></td>
+  <td>
+  <input id="axis" type="number" placeholder="经轴">
+</td>
+
   <td><input id="quantity" type="number"></td>
   <td><input id="date" type="date"></td>
   <td><input id="meters" type="number"></td>
@@ -254,6 +260,7 @@ const quantity=document.getElementById("quantity");
 const date=document.getElementById("date");
 const meters=document.getElementById("meters");
 const worker=document.getElementById("worker");
+const axis=document.getElementById("axis"); // ✅ 经轴
 const tableBody=document.getElementById("tableBody");
 const addBtn=document.getElementById("addBtn");
   // 🔍 SEARCH & SORT
@@ -287,12 +294,14 @@ addBtn.onclick=()=>{
   orderName:orderName.value,
   machine:machine.value,
   material:material.value,
+  axis: axis.value,          // ✅ 经轴
   quantity:quantity.value,
   date:date.value,
   meters:meters.value,
   worker:worker.value,
   urgent: urgent.value === "true"
 };
+
 
 
   // 🔴 NẾU ĐANG SỬA → UPDATE
@@ -316,7 +325,8 @@ addBtn.onclick=()=>{
 
   // reset form
   orderName.value=machine.value=material.value=
-  quantity.value=meters.value=worker.value="";
+quantity.value=meters.value=axis.value=worker.value="";
+
   date.valueAsDate=new Date();
 };
 
@@ -365,6 +375,9 @@ if(!o.done){
       <td>${o.orderName}</td>
       <td>${o.machine}</td>
       <td>${o.material}</td>
+      <td>
+  ${o.axis ? "L" + o.axis : "-"}
+</td>
       <td>${o.quantity}</td>
       <td>${o.date}</td>
       <td>${o.meters} m</td>
@@ -463,6 +476,7 @@ function editRow(key){
     material.value  = o.material;
     quantity.value  = o.quantity;
     date.value      = o.date;
+    axis.value      = o.axis || ""; // ✅ 经轴
     meters.value    = o.meters;
     worker.value    = o.worker;
     urgent.value = (o.urgent === true || o.urgent === "true")
@@ -496,6 +510,7 @@ sortOrder.onchange  = applyFilter;
 
 </body>
 </html>
+
 
 
 
