@@ -421,9 +421,9 @@ function editRow(key){
   });
 }
 function pushToMachine(key){
-  const machineNo = prompt("📥 Nhập số máy (vd: 1, 2, 11)");
+  const machineNo = prompt("📥 选机器 (vd: 1, 2, 11)");
 
-  if(!machineNo) return alert("❌ Chưa nhập số máy");
+  if(!machineNo) return alert("❌机器还没选");
 
   soiRef.child(key).update({
     machineNo: machineNo,   // 👈 MÁY THẬT
@@ -431,7 +431,7 @@ function pushToMachine(key){
     pushedAt: Date.now()
   });
 
-  alert("✅ Đã đẩy đơn xuống máy " + machineNo);
+  alert("✅ 已经下推订单 " + machineNo);
 }
 
 
@@ -439,6 +439,7 @@ function pushToMachine(key){
 
 </body>
 </html>
+
 
 
 
