@@ -169,6 +169,21 @@ th{
  
 
 <h2>📦 紧急订单 | Bảng đơn hàng gấp</h2>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+  <input id="searchInput" placeholder="🔍 搜索 订单 / 原料 / 机器">
+
+  <select id="sortField">
+    <option value="">— 排序 —</option>
+    <option value="material">原料</option>
+    <option value="machineNo">机器</option>
+  </select>
+
+  <select id="sortOrder">
+    <option value="asc">⬆️ 升序</option>
+    <option value="desc">⬇️ 降序</option>
+  </select>
+</div>
+
 
 <table>
 <thead>
@@ -241,6 +256,13 @@ const meters=document.getElementById("meters");
 const worker=document.getElementById("worker");
 const tableBody=document.getElementById("tableBody");
 const addBtn=document.getElementById("addBtn");
+  // 🔍 SEARCH & SORT
+const searchInput = document.getElementById("searchInput");
+const sortField   = document.getElementById("sortField");
+const sortOrder   = document.getElementById("sortOrder");
+
+let rawData = {};
+
 
 let editKey=null;
 let alerted=false;
@@ -299,10 +321,12 @@ addBtn.onclick=()=>{
 };
 
 // LOAD
-soiRef.on("value",s=>{
-  render(s.val());
-  alertRed(s.val());
+soiRef.on("value", s => {
+  rawData = s.val() || {};
+  applyFilter();
+  alertRed(rawData);
 });
+
 
 // RENDER
 function render(data){
@@ -361,6 +385,36 @@ if(!o.done){
     tableBody.appendChild(tr);
   });
 }
+  function applyFilter(){
+  let arr = Object.entries(rawData || {})
+    .filter(([k,o]) => !o.done && !o.pushed);
+
+  // 🔍 SEARCH
+  const q = searchInput.value.toLowerCase();
+  if(q){
+    arr = arr.filter(([k,o]) =>
+      (o.orderName||"").toLowerCase().includes(q) ||
+      (o.material||"").toLowerCase().includes(q) ||
+      (o.machine||"").toLowerCase().includes(q) ||
+      (o.machineNo||"").toLowerCase().includes(q)
+    );
+  }
+
+  // 🔃 SORT
+  const field = sortField.value;
+  if(field){
+    arr.sort((a,b)=>{
+      const A = (a[1][field]||"").toString();
+      const B = (b[1][field]||"").toString();
+      return sortOrder.value === "asc"
+        ? A.localeCompare(B,"zh")
+        : B.localeCompare(A,"zh");
+    });
+  }
+
+  render(Object.fromEntries(arr));
+}
+
 
 
 // DONE
@@ -434,11 +488,15 @@ function pushToMachine(key){
   alert("✅ 已经下推订单 " + machineNo);
 }
 
+searchInput.oninput = applyFilter;
+sortField.onchange  = applyFilter;
+sortOrder.onchange  = applyFilter;
 
 </script>
 
 </body>
 </html>
+
 
 
 
